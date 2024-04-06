@@ -7,9 +7,15 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.110.1"
+fastapi = {extras = ["standard"], version = "^0.110.1"}
 uvicorn = "^0.29.0"
 motor = "^3.4.0"
+pydantic = {extras = ["email"], version = "^2.6.4"}
+bcrypt = "4.0.1"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-jose = {extras = ["cyptography"], version = "^3.3.0"}
+python-dotenv = "^1.0.1"
+pydantic-settings = "^2.2.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
