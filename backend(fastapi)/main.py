@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import user_router, listing_router, reservation_router, auth_router
+from app.routers import user_router, auth_router
 
-app = FastAPI(title="Airbnb API")
+app = FastAPI(title="My home API")
 
 # CORS middleware configuration
 app.add_middleware(
@@ -15,6 +15,6 @@ app.add_middleware(
 
 # Include routers
 app.include_router(user_router.router)
-app.include_router(listing_router.router)
-app.include_router(reservation_router.router)
 app.include_router(auth_router.router)
+# app.include_router(listing_router.router)
+# app.include_router(reservation_router.router)
