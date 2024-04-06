@@ -1,5 +1,7 @@
-```markdown
+
 # MyHome: Your Reliable Rental Listings Platform
+
+```markdown
 
 ## Introduction
 Welcome to MyHome, the reliable rental listings app dedicated to providing accurate and verified apartment listings in Enugu. Our platform is committed to ensuring transparency in the rental market by mandating property owners to provide verified photos and comprehensive descriptions of their apartments.
