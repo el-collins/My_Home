@@ -1,7 +1,7 @@
 
 # MyHome: Your Reliable Rental Listings Platform
 
-```markdown
+<!-- ```markdown -->
 
 ## Introduction
 Welcome to MyHome, the reliable rental listings app dedicated to providing accurate and verified apartment listings in Enugu. Our platform is committed to ensuring transparency in the rental market by mandating property owners to provide verified photos and comprehensive descriptions of their apartments.
@@ -39,12 +39,15 @@ git clone https://github.com/your-username/myhome.git
 
 # Navigate to the project directory
 cd myhome
+cd backend(fastapi)
 
 # Install dependencies
-pip install -r requirements.txt
+poetry shell
+poetry install
 
-# Start the FastAPI server
-uvicorn app.main:app --reload
+# Run the server in development mode
+uvicorn main:app --reload
+
 ```
 
 ## Frontend
@@ -78,6 +81,6 @@ For support or inquiries, please email us at [support@myhome.com](mailto:support
 ## Acknowledgments
 - All contributors who have helped shape MyHome into what it is today.
 - The vibrant community of Enugu for inspiring this project.
-```
+<!-- ``` -->
 
 This README provides a comprehensive overview of the MyHome project, including its introduction, project phases, backend and frontend technologies, setup and installation instructions, contribution guidelines, license, contact information, and acknowledgments. Customize it further to match your project's specifics and repository structure.
