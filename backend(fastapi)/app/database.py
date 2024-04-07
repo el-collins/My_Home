@@ -8,17 +8,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+# old structure
+# def connectToDB():
+#     MONGO_URL = os.getenv("MONGO_URL")
+#     client = AsyncIOMotorClient(MONGO_URL)
+#     database = client.Users
+#     user_collection = database.users
+#     print("Successfully connected")
+#     return user_collection
+# user_collection = connectToDB()
 
-def connectToDB():
+# new structure
+def get_db_client():
     MONGO_URL = os.getenv("MONGO_URL")
     client = AsyncIOMotorClient(MONGO_URL)
-    database = client.Users
-    user_collection = database.users
-    print("Successfully connected")
-    return user_collection
+    return client
 
-
-user_collection = connectToDB()
+users_database = get_db_client().Users
+user_collection = users_database.users
 
 async def get_user(email: str):
     user = await user_collection.find_one({"email": email})
