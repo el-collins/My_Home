@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator
 from typing import Annotated
 from datetime import datetime
+from typing import Optional
 
 
 # User models
@@ -32,9 +33,12 @@ class User(BaseModel):
         return value
 
 # Token models
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 
 class TokenData(BaseModel):
     # The email of the user associated with the token
@@ -64,17 +68,27 @@ class UserLogin(BaseModel):
 #     id: str
 
 # # Listing models
-# class ListingBase(BaseModel):
-#     title: str
-#     description: str
-#     price: float
+class PropertyBase(BaseModel):
+    name: str
+    description: str
+    location: str
+    price: float
 
-# class ListingCreate(ListingBase):
-#     pass
 
-# class ListingPublic(ListingBase):
-#     id: str
-#     owner_id: str
+class PropertyCreate(PropertyBase):
+    owner_id: int
+    is_available: Optional[bool] = True
+
+
+class PropertyUpdate(PropertyBase):
+    is_available: Optional[bool]
+
+
+class Property(PropertyBase):
+    id: str
+
+    class Config:
+        from_attributes = True
 
 # # Reservation models
 # class ReservationBase(BaseModel):
@@ -87,5 +101,3 @@ class UserLogin(BaseModel):
 
 # class ReservationPublic(ReservationBase):
 #     id: str
-
-
