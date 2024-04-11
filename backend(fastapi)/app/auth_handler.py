@@ -1,31 +1,86 @@
-# from jose import JWTError, jwt
-# from datetime import datetime, timedelta
-# from app.models import UserAuth
-# from app.database import get_db_client
-# from app.settings import settings
+from datetime import datetime, timedelta
+from typing import Annotated
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from app.crud import get_user
+from app.settings import settings
+from passlib.context import CryptContext
+from jose import JWTError, jwt
 
-# class AuthHandler:
-#     SECRET_KEY = settings.secret_key
-#     ALGORITHM = settings.algorithm
-#     ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
-#     def encode_token(self, username: str):
-#         payload = {
-#             "exp": datetime.utcnow() + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES),
-#             "iat": datetime.utcnow(),
-#             "sub": username,
-#         }
-#         return jwt.encode(payload, self.SECRET_KEY, algorithm=self.ALGORITHM)
+# Initialize Passlib's CryptContext with the "bcrypt" scheme and auto-deprecation
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-#     async def authenticate_user(self, db, username: str, password: str):
-#         # Logic to authenticate a user
-#         pass
 
-#     def decode_token(self, token: str):
-#         try:
-#             payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
-#             return payload.get("sub")
-#         except JWTError:
-#             return None
+# Define the secret key, algorithm, and access token expiration time in minutes
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
-# # Additional authentication and authorization logic would go here...
+
+# Initialize an OAuth2PasswordBearer object with the location of the token endpoint
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+# Function to verify a plaintext password against a hashed password
+def verify_password(plain_password, hashed_password):
+    """
+    Verifies if a plaintext password matches a hashed password using the initialized CryptContext.
+    :param plain_password: The plaintext password to verify.
+    :param hashed_password: The hashed password to compare against.
+    :return: True if the plaintext password matches the hashed password, False otherwise.
+    """
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+# Function to authenticate a user using an email and password
+async def authenticate_user(email: str, password: str):
+    """
+    Authenticates a user by retrieving the user from the database using the provided email and verifying the password.
+    :param email: The user's email address.
+    :param password: The user's plaintext password.
+    :return: The user data if the authentication is successful, None otherwise.
+    """
+    user = await get_user(email)
+    if not user or not verify_password(password, user["password"]):
+        return None
+    return user
+
+
+# Function to create a new access token with the provided data and expiration time
+def create_access_token(data: dict, expires_delta: Annotated[timedelta, None] = None):
+    """
+    Creates a new access token with the provided data and expiration time.
+    :param data: The data to include in the token.
+    :param expires_delta: The expiration time for the token. If not provided, a default expiration time of 15 minutes is used.
+    :return: The encoded JWT access token.
+    """
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+
+# Function to verify JWT token and extract user information
+def decode_token(token: str):
+    """
+    Decodes a JWT token and extracts the user information.
+    :param token: The JWT token to decode.
+    :return: The decoded token payload if the token is valid, None otherwise.
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # return payload.get("sub")
+        return payload
+    except JWTError:
+        return None
+

@@ -1,31 +1,46 @@
-# from app.models import UserCreate
+from app.database import user_collection, property_collection
 
-# ListingCreate, ReservationCreate
-# from app.database import get_db_client
 
-# async def create_user(db, user):
-#     # Logic to create a user in the database
-#     return  await db["users"].insert_one({"username": user.name, "password": user.password})
-#     pass
+# get user with the email form the database
+async def get_user(email: str):
+    user = await user_collection.find_one({"email": email})
+    return user
 
-# async def get_user(db, user_id: str):
-#     # Logic to retrieve a user from the database
-#     pass
+# register user to the database
+async def register_user(user_data):
+    try:
+        result = await user_collection.insert_one(user_data)
+        # Add the database-generated ID to user data
+        user_data["_id"] = result.inserted_id
+        return user_data
+    except Exception as e:
+        raise ValueError("Failed to register user") from e
 
-# async def create_listing(db, listing: ListingCreate):
-#     # Logic to create a listing in the database
-#     pass
 
-# async def get_listing(db, listing_id: str):
-#     # Logic to retrieve a listing from the database
-#     pass
+async def create_property(property_data):
+    print(property_collection)
+    try:
+        result = await user_collection.insert_one(property_data.dict())
+        # Add the database-generated ID to user data
+        property_data["_id"] = result.inserted_id
+        print(result)
+        return property_data
+    except Exception as e:
+        raise ValueError("Failed to register property") from e
 
-# async def create_reservation(db, reservation: ReservationCreate):
-#     # Logic to create a reservation in the database
-#     pass
+    # return {"property_details": property_data}
 
-# async def get_reservation(db, reservation_id: str):
-#     # Logic to retrieve a reservation from the database
-#     pass
 
-# # Additional CRUD operations would go here...
+async def get_property(property_id: str) -> dict:
+    property_data = await property_collection.find_one({"_id": property_id})
+    return property_data
+
+
+async def update_property(property_id: str, updated_data: dict) -> dict:
+    await property_collection.update_one({"_id": property_id}, {"$set": updated_data})
+    return await get_property(property_id)
+
+
+async def delete_property(property_id: str) -> dict:
+    await property_collection.delete_one({"_id": property_id})
+    return {"message": "Property deleted"}

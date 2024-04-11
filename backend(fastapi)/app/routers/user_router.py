@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 # from app import crud, dependencies
 from app.models import User
-from app.database import get_user, register_user
+from app.crud import get_user, register_user
 from passlib.context import CryptContext # type: ignore
 
 
