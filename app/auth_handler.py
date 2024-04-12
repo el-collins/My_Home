@@ -19,7 +19,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 
 # Initialize an OAuth2PasswordBearer object with the location of the token endpoint
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 # Function to verify a plaintext password against a hashed password
