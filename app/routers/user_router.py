@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 # from app import crud, dependencies
 from app.models import User

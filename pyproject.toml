@@ -10,7 +10,7 @@ python = "^3.11"
 fastapi = {extras = ["standard"], version = "^0.110.1"}
 uvicorn = "^0.29.0"
 motor = "^3.4.0"
-pydantic = {extras = ["email"], version = "^2.6.4"}
+pydantic = {extras = ["email"], version = "^2.7.0"}
 bcrypt = "4.0.1"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-jose = {extras = ["cyptography"], version = "^3.3.0"}

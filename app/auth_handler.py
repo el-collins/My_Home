@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from typing import Annotated
-from fastapi import Depends, HTTPException, status # type: ignore
 from fastapi.security import OAuth2PasswordBearer # type: ignore
 from app.crud import get_user
 from app.settings import settings
@@ -19,7 +18,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 
 # Initialize an OAuth2PasswordBearer object with the location of the token endpoint
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 # Function to verify a plaintext password against a hashed password

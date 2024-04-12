@@ -2,7 +2,6 @@ from fastapi import Depends, HTTPException, status # type: ignore
 from app.auth_handler import decode_token, oauth2_scheme
 from app.models import TokenData
 from jose import JWTError
-from passlib.context import CryptContext # type: ignore
 from app.crud import get_user
 
 
