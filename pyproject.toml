@@ -17,6 +17,9 @@ python-jose = {extras = ["cyptography"], version = "^3.3.0"}
 python-dotenv = "^1.0.1"
 pydantic-settings = "^2.2.1"
 pymongo = "^4.6.3"
+pydantic-extra-types = "^2.6.0"
+phonenumbers = "^8.13.34"
+python-multipart = "^0.0.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"

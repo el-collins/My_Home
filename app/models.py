@@ -1,17 +1,15 @@
 from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator # type: ignore
-from typing import List, Annotated
-from datetime import datetime
+from typing import Annotated
 from typing import Optional
+from pydantic_extra_types.phone_numbers import PhoneNumber # type: ignore
 
 
 class User(BaseModel):
-    # name: Annotated[str, StringConstraints(pattern=r"^[A-Za-z](?:\s[A-Za-z]+)*$")]
-    # id: str
-    username: str
+    name: str
     email: EmailStr = Field(..., min_length=6)
     password: Annotated[str, StringConstraints(min_length=8)]
-    # created_at: datetime = Field(default_factory=datetime.now)
-    # updated_at: datetime = Field(default_factory=datetime.now)
+    phone_number: PhoneNumber =Field(description="user phone number", title="phone number")
+    
 
     @validator("password")
     # Custom validator for password complexity requirements
@@ -45,11 +43,6 @@ class TokenData(BaseModel):
     email: EmailStr
 
 
-# Auth model
-# class UserAuth(BaseModel):
-#     username: str
-#     password: str
-
 class UserLogin(BaseModel):
     # The email of the user to log in
     email: EmailStr
@@ -81,6 +74,6 @@ class Property(PropertyBase):
         from_attributes = True
 
 
-class WishlistItem(BaseModel):
+class Wishlist(BaseModel):
     user_id: str
     property_id: str

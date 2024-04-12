@@ -1,6 +1,5 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
-# from app import crud, dependencies
 from app.models import User
 from app.crud import get_all_users, get_user, get_user_by_id, register_user
 from passlib.context import CryptContext # type: ignore
@@ -13,7 +12,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 # Initialize Passlib's CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-@router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=User, status_code=status.HTTP_201_CREATED)
 async def create_user(user: User):
     """Create a new user."""
     try:
@@ -25,11 +24,9 @@ async def create_user(user: User):
              raise HTTPException(status_code=400, detail="Email already exists")
         
         hashed_password = pwd_context.hash(user.password)
-        user_data = {
-            "username": user.username,
-            "email": user.email,
-            "password": hashed_password
-        }
+        user_data = user.model_dump()
+        user_data["password"] = hashed_password
+        user_data["phone_number"] = user_data["phone_number"].split(':')[1]
         new_user = await register_user(user_data)
 
         return new_user

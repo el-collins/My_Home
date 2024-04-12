@@ -21,4 +21,4 @@ property_collection = property_database.properties
 
 
 wishlist_database = get_db_client().Wishlist
-wishlist_collection = property_database.wishlists
+wishlist_collection = wishlist_database.wishlists
