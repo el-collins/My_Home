@@ -1,18 +1,17 @@
-from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator
-from typing import Annotated
+from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator # type: ignore
+from typing import List, Annotated
 from datetime import datetime
 from typing import Optional
 
 
-# User models
 class User(BaseModel):
     # name: Annotated[str, StringConstraints(pattern=r"^[A-Za-z](?:\s[A-Za-z]+)*$")]
     # id: str
     username: str
     email: EmailStr = Field(..., min_length=6)
     password: Annotated[str, StringConstraints(min_length=8)]
-    created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime = Field(default_factory=datetime.now)
+    # created_at: datetime = Field(default_factory=datetime.now)
+    # updated_at: datetime = Field(default_factory=datetime.now)
 
     @validator("password")
     # Custom validator for password complexity requirements
@@ -32,7 +31,8 @@ class User(BaseModel):
         # Hash the password using passlib
         return value
 
-# Token models
+class UserResponse(User):
+    id: str
 
 
 class Token(BaseModel):
@@ -57,16 +57,6 @@ class UserLogin(BaseModel):
     password: str
 
 
-# class UserBase(BaseModel):
-#     username: str
-#     email: str
-
-# class UserCreate(UserBase):
-#     password: str
-
-# class UserPublic(UserBase):
-#     id: str
-
 # # Listing models
 class PropertyBase(BaseModel):
     name: str
@@ -90,14 +80,7 @@ class Property(PropertyBase):
     class Config:
         from_attributes = True
 
-# # Reservation models
-# class ReservationBase(BaseModel):
-#     listing_id: str
-#     start_date: datetime
-#     end_date: datetime
 
-# class ReservationCreate(ReservationBase):
-#     user_id: str
-
-# class ReservationPublic(ReservationBase):
-#     id: str
+class WishlistItem(BaseModel):
+    user_id: str
+    property_id: str

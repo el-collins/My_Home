@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from typing import Any, List
+from fastapi import APIRouter, Depends, HTTPException, status
 # from app import crud, dependencies
 from app.models import User
-from app.crud import get_user, register_user
+from app.crud import get_all_users, get_user, get_user_by_id, register_user
 from passlib.context import CryptContext # type: ignore
+from app.dependencies import get_current_user
 
 
 
@@ -11,7 +13,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 # Initialize Passlib's CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-@router.post("/", response_model=User)
+@router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
 async def create_user(user: User):
     """Create a new user."""
     try:
@@ -26,9 +28,7 @@ async def create_user(user: User):
         user_data = {
             "username": user.username,
             "email": user.email,
-            "password": hashed_password,
-                        "created_at": user.created_at,
-            "updated_at": user.updated_at
+            "password": hashed_password
         }
         new_user = await register_user(user_data)
 
@@ -36,7 +36,21 @@ async def create_user(user: User):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-# @router.get("/{user_id}", response_model=UserPublic)
-# async def get_user(user_id: str, db=Depends(dependencies.get_db)):
-#     return await crud.get_user(db, user_id)
 
+@router.get("/")
+async def get_all_users_route():
+    """Get all users."""
+    return await get_all_users()
+
+
+@router.get("/me", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+@router.get("/{user_id}", response_model=User)
+async def get_user_by_id_route(user_id: Any):
+    """Get user by ID."""
+    user = await get_user_by_id(user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user

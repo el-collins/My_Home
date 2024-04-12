@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from typing import Annotated
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, status # type: ignore
+from fastapi.security import OAuth2PasswordBearer # type: ignore
 from app.crud import get_user
 from app.settings import settings
-from passlib.context import CryptContext
-from jose import JWTError, jwt
+from passlib.context import CryptContext # type: ignore
+from jose import JWTError, jwt # type: ignore
 
 
 # Initialize Passlib's CryptContext with the "bcrypt" scheme and auto-deprecation

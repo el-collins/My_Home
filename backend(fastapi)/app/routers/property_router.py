@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
-from app.database import create_property, get_property, update_property, delete_property
+from app.crud import create_property, get_property, update_property, delete_property
 from app.models import Property, PropertyCreate, PropertyUpdate
 
 router = APIRouter(tags=["properties"])
