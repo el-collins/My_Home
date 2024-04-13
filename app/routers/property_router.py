@@ -1,35 +1,118 @@
-from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import JSONResponse
-from app.crud import create_property, get_property, update_property, delete_property
-from app.models import Property, PropertyCreate, PropertyUpdate
+from fastapi import APIRouter, HTTPException, Depends, status, Body
+from app.database import property_collection
+from app.models import PropertyBase, PropertyUpdate, PropertyCollection
+from bson import ObjectId
+from pymongo.collection import ReturnDocument
+from fastapi import Response
+
 
 router = APIRouter(tags=["properties"])
 
 
-@router.post("/properties/")
-async def create_property(property_data: PropertyCreate):
-    return {"property_details": property_data}
+@router.post(
+    "/property/",
+    response_description="Add new property",
+    response_model=PropertyBase,
+    status_code=status.HTTP_201_CREATED,
+    response_model_by_alias=False,
+)
+async def create_property(property: PropertyBase = Body(...)):
+    """
+    Insert a new property record.
+
+    A unique `id` will be created and provided in the response.
+    """
+    new_property = await property_collection.insert_one(
+        property.model_dump(by_alias=True, exclude=["id"])
+    )
+    created_property = await property_collection.find_one(
+        {"_id": new_property.inserted_id}
+
+    )
+    return created_property
 
 
-@router.get("/properties/{property_id}")
-async def read_property(property_id: str):
-    property_data = await get_property(property_id)
-    if property_data:
-        return property_data
-    raise HTTPException(status_code=404, detail="Property not found")
+@router.get(
+    "/properties/",
+    response_description="List all properties",
+    response_model=PropertyCollection,
+    response_model_by_alias=False,
+)
+async def list_properties():
+    """
+    List all of the property data in the database.
+
+    The response is unpaginated and limited to < 10 results.
+    """
+    try:
+        properties = await property_collection.find().limit(100).to_list(length=100)
+        return PropertyCollection(properties=properties)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.put("/properties/{property_id}")
-async def update_property_data(property_id: str, updated_data: PropertyUpdate):
-    property_data = await update_property(property_id, updated_data.dict())
-    if property_data:
-        return property_data
-    raise HTTPException(status_code=404, detail="Property not found")
+@router.get(
+    "/properties/{id}",
+    response_description="Get a single property",
+    response_model=PropertyBase,
+    response_model_by_alias=False,
+)
+async def show_property(id: str):
+    """
+    Get the record for a specific property, looked up by `id`.
+    """
+    if (
+        property := await property_collection.find_one({"_id": ObjectId(id)})
+    ) is not None:
+        return property
+
+    raise HTTPException(status_code=404, detail=f"Property {id} not found")
 
 
-@router.delete("/properties/{property_id}")
-async def delete_property_data(property_id: str):
-    result = await delete_property(property_id)
-    if result:
-        return JSONResponse(status_code=200, content=result)
-    raise HTTPException(status_code=404, detail="Property not found")
+@router.put(
+    "/properties/{id}",
+    response_description="Update a property",
+    response_model=PropertyBase,
+    response_model_by_alias=False,
+)
+async def update_property(id: str, property: PropertyUpdate = Body(...)):
+    """
+    Update individual fields of an existing property record.
+
+    Only the provided fields will be updated.
+    Any missing or `null` fields will be ignored.
+    """
+    property = {
+        k: v for k, v in property.model_dump(by_alias=True).items() if v is not None
+    }
+
+    if len(property) >= 1:
+        update_result = await property_collection.find_one_and_update(
+            {"_id": ObjectId(id)},
+            {"$set": property},
+            return_document=ReturnDocument.AFTER,
+        )
+        if update_result is not None:
+            return update_result
+        else:
+            raise HTTPException(
+                status_code=404, detail=f"Property {id} not found")
+
+    # The update is empty, but we should still return the matching document:
+    if (existing_property := await property_collection.find_one({"_id": id})) is not None:
+        return existing_property
+
+    raise HTTPException(status_code=404, detail=f"Property {id} not found")
+
+
+@router.delete("/properties/{id}", response_description="Delete a property")
+async def delete_property(id: str):
+    """
+    Remove a single property record from the database.
+    """
+    delete_result = await property_collection.delete_one({"_id": ObjectId(id)})
+
+    if delete_result.deleted_count == 1:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    raise HTTPException(status_code=404, detail=f"Property {id} not found")

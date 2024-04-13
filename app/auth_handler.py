@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from typing import Annotated
-from fastapi.security import OAuth2PasswordBearer # type: ignore
+from fastapi.security import OAuth2PasswordBearer  # type: ignore
 from app.crud import get_user
 from app.settings import settings
-from passlib.context import CryptContext # type: ignore
-from jose import JWTError, jwt # type: ignore
+from passlib.context import CryptContext  # type: ignore
+from jose import JWTError, jwt
 
 
 # Initialize Passlib's CryptContext with the "bcrypt" scheme and auto-deprecation
@@ -82,4 +82,3 @@ def decode_token(token: str):
         return payload
     except JWTError:
         return None
-

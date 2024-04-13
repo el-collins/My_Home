@@ -10,18 +10,19 @@ router = APIRouter(prefix="/wishlist", tags=["wishlist"])
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def add_to_wishlist_route(wishlist_item: WishlistItem):
     try:
-           # Check if the property exists
+        # Check if the property exists
         property = await property_collection.find_one({"_id": wishlist_item.property_id})
         if not property:
             raise HTTPException(status_code=404, detail="Property not found")
-    
+
          # Check if the property is already in the user's wishlist
         existing_wishlist_item = await wishlist_collection.find_one({
-        "user_id": wishlist_item.user_id,
-        "property_id": wishlist_item.property_id
-    })
+            "user_id": wishlist_item.user_id,
+            "property_id": wishlist_item.property_id
+        })
         if existing_wishlist_item:
-            raise HTTPException(status_code=400, detail="Property already in wishlist")
+            raise HTTPException(
+                status_code=400, detail="Property already in wishlist")
 
         result = await add_to_wishlist(wishlist_item)
         return result

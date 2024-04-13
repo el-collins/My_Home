@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "backend(fastapi)"
+name = "my-home-project"
 version = "0.1.0"
 description = ""
 authors = ["el-collins <charlescollins476@gmail.com>"]
@@ -17,6 +17,7 @@ python-jose = {extras = ["cyptography"], version = "^3.3.0"}
 python-dotenv = "^1.0.1"
 pydantic-settings = "^2.2.1"
 pymongo = "^4.6.3"
+jose = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
