@@ -252,6 +252,19 @@ files = [
 ]
 
 [[package]]
+name = "jose"
+version = "1.0.0"
+description = "An implementation of the JOSE draft"
+optional = false
+python-versions = "*"
+files = [
+    {file = "jose-1.0.0.tar.gz", hash = "sha256:8436c3617cd94e1ba97828fbb1ce27c129f66c78fb855b4bb47e122b5f345fba"},
+]
+
+[package.dependencies]
+pycrypto = ">=2.6"
+
+[[package]]
 name = "motor"
 version = "3.4.0"
 description = "Non-blocking MongoDB driver for Tornado or asyncio"
@@ -330,6 +343,16 @@ python-versions = ">=3.8"
 files = [
     {file = "pyasn1-0.6.0-py2.py3-none-any.whl", hash = "sha256:cca4bb0f2df5504f02f6f8a775b6e416ff9b0b3b16f7ee80b5a3153d9b804473"},
     {file = "pyasn1-0.6.0.tar.gz", hash = "sha256:3a35ab2c4b5ef98e17dfdec8ab074046fbda76e281c5a706ccd82328cfc8f64c"},
+]
+
+[[package]]
+name = "pycrypto"
+version = "2.6.1"
+description = "Cryptographic modules for Python."
+optional = false
+python-versions = "*"
+files = [
+    {file = "pycrypto-2.6.1.tar.gz", hash = "sha256:f2ce1e989b272cfcb677616763e0a2e7ec659effa67a88aa92b3a65528f60a3c"},
 ]
 
 [[package]]
@@ -705,4 +728,4 @@ standard = ["colorama (>=0.4)", "httptools (>=0.5.0)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "7dd2da098ecb40722ad4b0963c1a51743ed802a025b1ab619ab69ae679067c23"
+content-hash = "926c23a2385d16f66c447c21badc237ef68d03f2250f38ae67e562bf144363b8"

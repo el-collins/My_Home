@@ -1,7 +1,10 @@
-from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator # type: ignore
+from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator, ConfigDict  # type: ignore
 from typing import List, Annotated
 from datetime import datetime
 from typing import Optional
+from app.database import PyObjectId
+from bson import ObjectId
+from enum import Enum
 
 
 class User(BaseModel):
@@ -31,6 +34,7 @@ class User(BaseModel):
         # Hash the password using passlib
         return value
 
+
 class UserResponse(User):
     id: str
 
@@ -58,11 +62,35 @@ class UserLogin(BaseModel):
 
 
 # # Listing models
+
+class PropertyFeatures(BaseModel):
+    number_of_rooms: int
+    number_of_toilets: int
+    running_water: Optional[bool] = True
+    POP_available: Optional[bool] = True
+
+
+class PropertyLocation (BaseModel):
+    street_address: str
+    town: str
+    state: str
+
+
 class PropertyBase(BaseModel):
+    """
+    Container for a single property record.
+    """
+
     name: str
-    description: str
-    location: str
     price: float
+    property_type: str
+    property_location_details: PropertyLocation
+    property_features: PropertyFeatures
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
+    )
 
 
 class PropertyCreate(PropertyBase):
@@ -70,15 +98,29 @@ class PropertyCreate(PropertyBase):
     is_available: Optional[bool] = True
 
 
+class PropertyResponse(PropertyBase):
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+
+
 class PropertyUpdate(PropertyBase):
+    """
+    A set of optional updates to be made to a document in the database.
+    """
+    name: Optional[str] = None
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+    )
     is_available: Optional[bool]
 
 
-class Property(PropertyBase):
-    id: str
+class PropertyCollection(BaseModel):
+    """
+    A container holding a list of `PropertyBase` instances.
 
-    class Config:
-        from_attributes = True
+    """
+
+    properties: List[PropertyBase]
 
 
 class WishlistItem(BaseModel):
