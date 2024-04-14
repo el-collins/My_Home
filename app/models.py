@@ -85,7 +85,7 @@ class PropertyBase(BaseModel):
     name: str
     price: float
     property_type: str
-    user_phone: PhoneNumber
+    phone_number: str
     property_location_details: PropertyLocation
     property_features: PropertyFeatures
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
@@ -97,7 +97,6 @@ class PropertyBase(BaseModel):
 
 class PropertyCreate(PropertyBase):
     owner_id: int
-    is_available: Optional[bool] = True
 
 
 class PropertyResponse(PropertyBase):
@@ -113,7 +112,7 @@ class PropertyUpdate(PropertyBase):
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
     )
-    is_available: Optional[bool]
+    is_available: Optional[bool] = True
 
 
 class PropertyCollection(BaseModel):
@@ -123,6 +122,7 @@ class PropertyCollection(BaseModel):
     """
 
     properties: List[PropertyBase]
+    imageUrl: str
 
 
 class WishlistItem(BaseModel):

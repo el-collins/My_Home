@@ -19,6 +19,7 @@ pydantic-settings = "^2.2.1"
 pymongo = "^4.6.3"
 jose = "^1.0.0"
 phonenumbers = "^8.13.34"
+pillow = "^10.3.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
