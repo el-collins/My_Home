@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional
 from app.database import PyObjectId
 from bson import ObjectId
+from phonenumbers import PhoneNumber
 from enum import Enum
 
 
@@ -84,6 +85,7 @@ class PropertyBase(BaseModel):
     name: str
     price: float
     property_type: str
+    user_phone: PhoneNumber
     property_location_details: PropertyLocation
     property_features: PropertyFeatures
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
