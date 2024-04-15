@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Optional
 from app.database import PyObjectId
 from bson import ObjectId
-from phonenumbers import PhoneNumber
+from pydantic_extra_types.phone_numbers import PhoneNumber
 from enum import Enum
 
 
@@ -73,7 +73,7 @@ class PropertyFeatures(BaseModel):
 
 class PropertyLocation (BaseModel):
     street_address: str
-    town: str
+    area: str
     state: str
 
 
@@ -82,13 +82,19 @@ class PropertyBase(BaseModel):
     Container for a single property record.
     """
 
-    name: str
+    name: str = Field(min_length=3, max_length=50, description="Name of the property",
+                      examples=['New Maryland Home'], title="Name")
+
     price: float
-    property_type: str
-    phone_number: str
+
+    property_type: str = Field(min_length=3, max_length=50, description="Name of the property",
+                               examples=['New Maryland Home'], title="Name")
+
+    phone_number: PhoneNumber = Field(
+        description="Phone number of the property owner", title='Phone Number', examples=["+2347084857362"])
+
     property_location_details: PropertyLocation
     property_features: PropertyFeatures
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
@@ -122,7 +128,6 @@ class PropertyCollection(BaseModel):
     """
 
     properties: List[PropertyBase]
-    imageUrl: str
 
 
 class WishlistItem(BaseModel):
