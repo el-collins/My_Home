@@ -83,12 +83,12 @@ class PropertyBase(BaseModel):
     """
 
     name: str = Field(min_length=3, max_length=50, description="Name of the property",
-                      examples=['New Maryland Home'], title="Name")
+                      examples=['New Maryland String'], title="Name")
 
     price: float
 
     property_type: str = Field(min_length=3, max_length=50, description="Name of the property",
-                               examples=['New Maryland Home'], title="Name")
+                               examples=['Flat String'], title="Name")
 
     phone_number: PhoneNumber = Field(
         description="Phone number of the property owner", title='Phone Number', examples=["+2347084857362"])
