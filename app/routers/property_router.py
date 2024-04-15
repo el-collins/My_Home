@@ -1,18 +1,19 @@
 from fastapi import APIRouter, HTTPException, Depends, status, Body
 from app.database import property_collection
-from app.models import PropertyBase, PropertyUpdate, PropertyCollection
+from app.dependencies import get_current_user
+from app.models import PropertyBase, PropertyUpdate, PropertyCollection, PropertyResponse
 from bson import ObjectId
 from pymongo.collection import ReturnDocument
 from fastapi import Response
 
 
-router = APIRouter(tags=["properties"])
+router = APIRouter(prefix="/api/v1", tags=["properties"])
 
 
 @router.post(
     "/property/",
     response_description="Add new property",
-    response_model=PropertyBase,
+    response_model=PropertyResponse,
     status_code=status.HTTP_201_CREATED,
     response_model_by_alias=False,
 )
@@ -40,15 +41,11 @@ async def create_property(property: PropertyBase = Body(...)):
 )
 async def list_properties():
     """
-    List all of the property data in the database.
+    List all of the properties data in the database.
 
-    The response is unpaginated and limited to < 10 results.
+    The response is unpaginated and limited to 1000 results.
     """
-    try:
-        properties = await property_collection.find().limit(100).to_list(length=100)
-        return PropertyCollection(properties=properties)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+    return PropertyCollection(properties=await property_collection.find().to_list(1000))
 
 
 @router.get(
@@ -69,10 +66,10 @@ async def show_property(id: str):
     raise HTTPException(status_code=404, detail=f"Property {id} not found")
 
 
-@router.put(
+@router.patch(
     "/properties/{id}",
     response_description="Update a property",
-    response_model=PropertyBase,
+    response_model=PropertyUpdate,
     response_model_by_alias=False,
 )
 async def update_property(id: str, property: PropertyUpdate = Body(...)):
