@@ -6,6 +6,7 @@ from app.settings import settings
 from passlib.context import CryptContext  # type: ignore
 from jose import JWTError, jwt
 
+#   const Usertoken = localStorage.getItem('token')
 
 # Initialize Passlib's CryptContext with the "bcrypt" scheme and auto-deprecation
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -18,7 +19,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 
 # Initialize an OAuth2PasswordBearer object with the location of the token endpoint
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 
 # Function to verify a plaintext password against a hashed password

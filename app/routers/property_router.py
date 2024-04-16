@@ -1,13 +1,24 @@
-from fastapi import APIRouter, HTTPException, Depends, status, Body
+from fastapi import APIRouter, HTTPException, Depends, status, Body, UploadFile, File
 from app.database import property_collection
 from app.dependencies import get_current_user
-from app.models import PropertyBase, PropertyUpdate, PropertyCollection, PropertyResponse
+from app.models import (
+    PropertyBase,
+    PropertyUpdate,
+    PropertyCollection,
+    PropertyResponse,
+    PropertyImage,
+)
 from bson import ObjectId
 from pymongo.collection import ReturnDocument
 from fastapi import Response
+from app.services import savePicture, getResponse, resultVerification
+from app.save_picture import save_picture
 
 
 router = APIRouter(prefix="/api/v1", tags=["properties"])
+
+
+UploadImage = f"/image-upload/"
 
 
 @router.post(
@@ -17,7 +28,9 @@ router = APIRouter(prefix="/api/v1", tags=["properties"])
     status_code=status.HTTP_201_CREATED,
     response_model_by_alias=False,
 )
-async def create_property(property: PropertyBase = Body(...)):
+async def create_property(
+    property: PropertyBase = Body(...), PropertyResponse=Depends(get_current_user)
+):
     """
     Insert a new property record.
 
@@ -28,7 +41,6 @@ async def create_property(property: PropertyBase = Body(...)):
     )
     created_property = await property_collection.find_one(
         {"_id": new_property.inserted_id}
-
     )
     return created_property
 
@@ -92,11 +104,12 @@ async def update_property(id: str, property: PropertyUpdate = Body(...)):
         if update_result is not None:
             return update_result
         else:
-            raise HTTPException(
-                status_code=404, detail=f"Property {id} not found")
+            raise HTTPException(status_code=404, detail=f"Property {id} not found")
 
     # The update is empty, but we should still return the matching document:
-    if (existing_property := await property_collection.find_one({"_id": id})) is not None:
+    if (
+        existing_property := await property_collection.find_one({"_id": id})
+    ) is not None:
         return existing_property
 
     raise HTTPException(status_code=404, detail=f"Property {id} not found")
@@ -113,3 +126,16 @@ async def delete_property(id: str):
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise HTTPException(status_code=404, detail=f"Property {id} not found")
+
+
+@router.post(UploadImage + "{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def uploadPropertyImage(id: str, file: UploadFile = File(...)):
+    """
+    Add house images by `id`cof property ownerd.
+    """
+    result = await resultVerification(id)
+    imageUrl = save_picture(file=file, folderName="properties", fileName=result["name"])
+    done = await savePicture(id, imageUrl)
+    return getResponse(
+        done, errorMessage="An error occurred while saving property image."
+    )

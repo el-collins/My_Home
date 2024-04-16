@@ -7,16 +7,15 @@ from bson import ObjectId
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from enum import Enum
 import locale
+import locale
 
 
 class User(BaseModel):
-    # name: Annotated[str, StringConstraints(pattern=r"^[A-Za-z](?:\s[A-Za-z]+)*$")]
-    # id: str
-    username: str
+    name: str
     email: EmailStr = Field(..., min_length=6)
     password: Annotated[str, StringConstraints(min_length=8)]
-    # created_at: datetime = Field(default_factory=datetime.now)
-    # updated_at: datetime = Field(default_factory=datetime.now)
+    phone_number: PhoneNumber = Field(
+        description="user phone number", title="phone number")
 
     @validator("password")
     # Custom validator for password complexity requirements
@@ -51,11 +50,6 @@ class TokenData(BaseModel):
     email: EmailStr
 
 
-# Auth model
-# class UserAuth(BaseModel):
-#     username: str
-#     password: str
-
 class UserLogin(BaseModel):
     # The email of the user to log in
     email: EmailStr
@@ -84,7 +78,8 @@ class PropertyBase(BaseModel):
     """
 
     name: str = Field(min_length=3, max_length=50, description="Name of the property",
-                      examples=['New Maryland Home'], title="Name")
+
+                      examples=["New Maryland String"], title="Name")
 
     price: float = locale.currency
 
@@ -102,12 +97,20 @@ class PropertyBase(BaseModel):
     )
 
 
+class PropertyImage(PropertyBase):
+    imageUrl: str
+    # created_at: str
+    # updated_at: str
+    # isActive: Optional[bool] = False
+
+
 class PropertyCreate(PropertyBase):
     owner_id: int
 
 
 class PropertyResponse(PropertyBase):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    imageUrl: str
 
 
 class PropertyUpdate(PropertyBase):
@@ -131,6 +134,6 @@ class PropertyCollection(BaseModel):
     properties: List[PropertyBase]
 
 
-class WishlistItem(BaseModel):
+class Wishlist(BaseModel):
     user_id: str
     property_id: str
