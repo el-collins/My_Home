@@ -6,12 +6,15 @@ from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="My home API")
 
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 # CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    # allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -22,3 +25,5 @@ app.include_router(user_router.router)
 app.include_router(auth_router.router)
 app.include_router(property_router.router)
 app.include_router(wishlist_router.router)
+# app.include_router(google_router.router)
+
