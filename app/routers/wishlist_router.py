@@ -1,12 +1,37 @@
-from fastapi import APIRouter, HTTPException, status
-from app.crud import add_to_wishlist
-from app.models import WishlistItem
-from app.database import wishlist_collection, property_collection
+from fastapi import APIRouter, Depends, HTTPException, status
+from app.crud import add_to_wishlist, get_user_wishlist, remove_wishlist
+from app.dependencies import get_current_user
+from app.models import User
 
 router = APIRouter(prefix="/wishlist", tags=["wishlist"])
 
 
-# Endpoint to add a property to the user's wishlist
+
+
+
+
+#wishlist_router.py
+
+# Define the endpoint to retrieve all wishlist items for the user
+@router.get("/")
+async def get_wishlist(current_user: User = Depends(get_current_user)):
+    """
+    This endpoint allows users to retrieve all items from their wishlist.
+
+    :param current_user: The current user, obtained using the get_current_user dependency
+    :return: A list of all items in the user's wishlist
+    """
+    try:
+        # Call the get_user_wishlist function to retrieve all wishlist items for the user
+        wishlist_items = await get_user_wishlist(str(current_user["_id"]))
+        return wishlist_items
+    except Exception as e:
+        # If an error occurs, raise an HTTPException with a status code of 400 and the error message
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+
+# Define the endpoint to add a property to the user's wishlist
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def add_to_wishlist_route(wishlist_item: WishlistItem):
     try:
