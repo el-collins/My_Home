@@ -6,6 +6,7 @@ from app.settings import settings
 from passlib.context import CryptContext # type: ignore
 from jose import JWTError, jwt # type: ignore
 
+#   const Usertoken = localStorage.getItem('token')
 
 # Initialize Passlib's CryptContext with the "bcrypt" scheme and auto-deprecation
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

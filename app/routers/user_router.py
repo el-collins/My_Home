@@ -7,13 +7,13 @@ from app.crud import get_all_users, get_user, get_user_by_id, register_user
 from passlib.context import CryptContext # type: ignore
 from app.dependencies import get_current_user
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/api", tags=["users"])
 
 # Initialize Passlib's CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # POST /signup endpoint to create a new user
-@router.post("/signup", response_model=User, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
 async def create_user(user: User):
     """Create a new user."""
     try:

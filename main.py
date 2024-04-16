@@ -4,10 +4,12 @@ from app.routers import user_router, auth_router, property_router, wishlist_rout
 
 app = FastAPI(title="My home API")
 
+origins = ["http://localhost:5173"]
 # CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

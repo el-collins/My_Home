@@ -5,11 +5,11 @@ from fastapi.security import OAuth2PasswordRequestForm # type: ignore
 from app.auth_handler import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token
 
 # Initialize the APIRouter with a prefix of "/auth" and a tag of "auth"
-router = APIRouter(prefix="/auth", tags=["login"])
+router = APIRouter(prefix="/api", tags=["login"])
 
 
 # Route for user login
-@router.post("/login/")
+@router.post("/login")
 async def login_user_route(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     """
     Authenticates a user using the provided email and password, and returns a new access token.
