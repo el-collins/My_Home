@@ -115,6 +115,7 @@ class PropertyCreate(PropertyBase):
 
 class PropertyResponse(PropertyBase):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    imageUrl: str
 
 
 class PropertyUpdate(PropertyBase):

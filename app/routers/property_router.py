@@ -21,7 +21,7 @@ UploadImage = f'/image-upload/'
     status_code=status.HTTP_201_CREATED,
     response_model_by_alias=False,
 )
-async def create_property(property: PropertyImage = Body(...)):
+async def create_property(property: PropertyBase = Body(...), PropertyResponse=Depends(get_current_user)):
     """
     Insert a new property record.
 
