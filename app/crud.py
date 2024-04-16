@@ -4,11 +4,15 @@ from app.models import UserResponse, WishlistItem, User
 from bson import ObjectId
 
 # get user with the email form the database
+
+
 async def get_user(email: str):
     user = await user_collection.find_one({"email": email})
     return user
 
 # register user to the database
+
+
 async def register_user(user_data):
     try:
         result = await user_collection.insert_one(user_data)
@@ -19,26 +23,23 @@ async def register_user(user_data):
         raise ValueError("Failed to register user") from e
 
 
-
-
-
 async def get_user_by_id(user_id: str):
     """Get user by ID."""
     user = await user_collection.find_one({"_id": ObjectId(user_id)})
     return User(**user) if user else None
 
+
 async def get_all_users() -> List[UserResponse]:
     """Get all users."""
     users = []
     async for user_data in user_collection.find({}):
-        user_data['_id'] = str(user_data['_id'])  # Convert ObjectId to str for JSON serialization
+        # Convert ObjectId to str for JSON serialization
+        user_data['_id'] = str(user_data['_id'])
         user_data['id'] = user_data.pop('_id')  # Rename _id to id
         user = UserResponse(**user_data)
         users.append(user)
-    
+
     return users
-
-
 
 
 async def create_property(property_data):
@@ -68,7 +69,6 @@ async def update_property(property_id: str, updated_data: dict) -> dict:
 async def delete_property(property_id: str) -> dict:
     await property_collection.delete_one({"_id": property_id})
     return {"message": "Property deleted"}
-
 
 
 async def add_to_wishlist(wishlist_item: WishlistItem):
