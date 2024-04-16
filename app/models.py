@@ -82,13 +82,6 @@ class PropertyBase(BaseModel):
 
     price: float
 
-    property_type: str = Field(description="Type of the property",
-                               examples=["Flat String"], title="Name")
-
-                      examples=['New Maryland Home'], title="Name")
-
-    price: float
-
     property_type: str = Field(min_length=3, max_length=50, description="Name of the property",
                                examples=['New Maryland Home'], title="Name")
     phone_number: PhoneNumber = Field(

@@ -1,23 +1,12 @@
 from typing import List
 from app.database import user_collection, property_collection, wishlist_collection
-from app.models import UserResponse, User
+from app.models import UserResponse, User, Wishlist
 from bson import ObjectId  # type: ignore
 
 # Asynchronously retrieves a user from the database using their email address
 async def get_user(email: str):
     user = await user_collection.find_one({"email": email})
     return user
-
-
-# register user to the database
-async def register_user(user_data):
-    try:
-        result = await user_collection.insert_one(user_data)
-        # Add the database-generated ID to user data
-        user_data["_id"] = result.inserted_id
-        return user_data
-    except Exception as e:
-        raise ValueError("Failed to register user") from e
 
 
 # Asynchronously registers a new user in the database
@@ -69,13 +58,13 @@ async def get_user_wishlist(user_id: str):
 
 
 
-# Asynchronously adds an item to a user's wishlist
-async def add_to_wishlist(wishlist_data):
-    # Inserts the wishlist item into the database
-    await wishlist_collection.insert_one(dict(wishlist_data))
-    # Creates a JSON-serializable response object
-    response = {**dict(wishlist_data)}
-    return response
+# # Asynchronously adds an item to a user's wishlist
+# async def add_to_wishlist(wishlist_data):
+#     # Inserts the wishlist item into the database
+#     await wishlist_collection.insert_one(dict(wishlist_data))
+#     # Creates a JSON-serializable response object
+#     response = {**dict(wishlist_data)}
+#     return response
 
 # Asynchronously removes an item from a user's wishlist
 async def remove_wishlist(user_id: str, property_id: str):
@@ -108,18 +97,18 @@ async def update_property(property_id: str, updated_data: dict) -> dict:
     await property_collection.update_one({"_id": property_id}, {"$set": updated_data})
     return await get_property(property_id)
 
+
 # Asynchronously deletes a property from the database using its ID
 async def delete_property(property_id: str) -> dict:
     await property_collection.delete_one({"_id": property_id})
-
     return {"message": "Property deleted"}
 
 
-async def add_to_wishlist(wishlist_item: WishlistItem):
+async def add_to_wishlist(wishlist_item: Wishlist):
     try:
         result = await wishlist_collection.insert_one(wishlist_item.dict())
         return {**wishlist_item.dict(), "_id": str(result.inserted_id)}
     except Exception as e:
         raise ValueError("Failed to register property") from e
-    return {"message": "Property deleted"}
+
 
