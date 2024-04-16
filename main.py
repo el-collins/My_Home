@@ -1,8 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import user_router, auth_router, property_router, wishlist_router
+from fastapi.staticfiles import StaticFiles
+
 
 app = FastAPI(title="My home API")
+
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # CORS middleware configuration
@@ -21,3 +26,4 @@ app.include_router(auth_router.router)
 app.include_router(property_router.router)
 app.include_router(wishlist_router.router)
 # app.include_router(google_router.router)
+

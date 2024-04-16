@@ -8,6 +8,18 @@ async def get_user(email: str):
     user = await user_collection.find_one({"email": email})
     return user
 
+
+# register user to the database
+async def register_user(user_data):
+    try:
+        result = await user_collection.insert_one(user_data)
+        # Add the database-generated ID to user data
+        user_data["_id"] = result.inserted_id
+        return user_data
+    except Exception as e:
+        raise ValueError("Failed to register user") from e
+
+
 # Asynchronously registers a new user in the database
 async def register_user(user_data):
 
@@ -22,22 +34,22 @@ async def get_user_by_id(user_id: str):
     user = await user_collection.find_one({"_id": ObjectId(user_id)})
     return User(**user) if user else None
 
+
 # Asynchronously retrieves all users from the database
 async def get_all_users() -> List[UserResponse]:
     """Get all users."""
     users = []
     async for user_data in user_collection.find({}):
-        user_data["_id"] = str(
-            user_data["_id"]
-        )  # Converts ObjectId to str for JSON serialization
-        user_data["id"] = user_data.pop("_id")  # Renames _id to id
+
+        # Convert ObjectId to str for JSON serialization
+        user_data['_id'] = str(user_data['_id'])
+        user_data['id'] = user_data.pop('_id')  # Rename _id to id
         user = UserResponse(**user_data)
         users.append(user)
 
     return users
 
 
-#crud.py
 
 # Asynchronously retrieves all wishlist items for a user
 async def get_user_wishlist(user_id: str):
@@ -99,4 +111,15 @@ async def update_property(property_id: str, updated_data: dict) -> dict:
 # Asynchronously deletes a property from the database using its ID
 async def delete_property(property_id: str) -> dict:
     await property_collection.delete_one({"_id": property_id})
+
     return {"message": "Property deleted"}
+
+
+async def add_to_wishlist(wishlist_item: WishlistItem):
+    try:
+        result = await wishlist_collection.insert_one(wishlist_item.dict())
+        return {**wishlist_item.dict(), "_id": str(result.inserted_id)}
+    except Exception as e:
+        raise ValueError("Failed to register property") from e
+    return {"message": "Property deleted"}
+

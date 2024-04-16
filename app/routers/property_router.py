@@ -1,3 +1,12 @@
+from fastapi import APIRouter, HTTPException, Depends, status, Body, UploadFile, File
+from app.database import property_collection
+from app.dependencies import get_current_user
+from app.models import PropertyBase, PropertyUpdate, PropertyCollection, PropertyResponse, PropertyImage
+from bson import ObjectId
+from pymongo.collection import ReturnDocument
+from fastapi import Response
+from app.services import savePicture, getResponse, resultVerification
+from app.save_picture import save_picture
 from fastapi import APIRouter, HTTPException, Depends, status, Body
 from app.database import property_collection
 from app.dependencies import get_current_user
@@ -8,6 +17,9 @@ from fastapi import Response
 
 
 router = APIRouter(prefix="/api/v1", tags=["properties"])
+
+
+UploadImage = f'/image-upload/'
 
 
 @router.post(
@@ -21,6 +33,28 @@ async def create_property(property: PropertyBase = Body(...)):
     """
     Insert a new property record.
 
+
+@router.post(
+    "/property/",
+    response_description="Add new property",
+    response_model=PropertyResponse,
+    status_code=status.HTTP_201_CREATED,
+    response_model_by_alias=False,
+)
+async def create_property(property: PropertyBase = Body(...), PropertyResponse=Depends(get_current_user)):
+    """
+    Insert a new property record.
+
+    A unique `id` will be created and provided in the response.
+    """
+    new_property = await property_collection.insert_one(
+        property.model_dump(by_alias=True, exclude=["id"])
+    )
+    created_property = await property_collection.find_one(
+        {"_id": new_property.inserted_id}
+
+    )
+    return created_property
     A unique `id` will be created and provided in the response.
     """
     new_property = await property_collection.insert_one(
@@ -43,6 +77,17 @@ async def list_properties():
     """
     List all of the properties data in the database.
 
+@router.get(
+    "/properties/",
+    response_description="List all properties",
+    response_model=PropertyCollection,
+    response_model_by_alias=False,
+)
+async def list_properties():
+    """
+    List all of the properties data in the database.
+
+=======
     The response is unpaginated and limited to 1000 results.
     """
     return PropertyCollection(properties=await property_collection.find().to_list(1000))
@@ -113,3 +158,17 @@ async def delete_property(id: str):
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise HTTPException(status_code=404, detail=f"Property {id} not found")
+
+
+
+@router.post(UploadImage+'{id}', status_code=status.HTTP_204_NO_CONTENT)
+async def uploadPropertyImage(id: str, file: UploadFile = File(...)):
+    """
+    Add house images by `id`cof property ownerd.
+    """
+    result = await resultVerification(id)
+    imageUrl = save_picture(
+        file=file, folderName='properties', fileName=result['name'])
+    done = await savePicture(id, imageUrl)
+    return getResponse(done, errorMessage="An error occurred while saving property image.")
+
