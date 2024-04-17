@@ -38,18 +38,24 @@ def get_password_hash(password: str) -> str:
 
 
 # Function to authenticate a user using an email and password
+# async def authenticate_user(email: str, password: str):
+#     """
+#     Authenticates a user by retrieving the user from the database using the provided email and verifying the password.
+#     :param email: The user's email address.
+#     :param password: The user's plaintext password.
+#     :return: The user data if the authentication is successful, None otherwise.
+#     """
+#     user = await get_user(email)
+#     if not user or not verify_password(password, user["password"]):
+#         return None
+#     return user
+
 async def authenticate_user(email: str, password: str):
-    """
-    Authenticates a user by retrieving the user from the database using the provided email and verifying the password.
-    :param email: The user's email address.
-    :param password: The user's plaintext password.
-    :return: The user data if the authentication is successful, None otherwise.
-    """
     user = await get_user(email)
     if not user or not verify_password(password, user["password"]):
         return None
-    return user
-
+    user_info = {"sub": user["email"], "email": user["email"], "id": str(user["_id"]), "name": user["name"], "phone_number": user["phone_number"]}
+    return user_info
 
 # Function to create a new access token with the provided data and expiration time
 def create_access_token(data: dict, expires_delta: Annotated[timedelta, None] = None):
