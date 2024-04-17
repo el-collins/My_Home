@@ -106,8 +106,8 @@ class PropertyImage(BaseModel):
         orm_mode = True
 
 
-class MultiplePropertyImages(BaseModel):
-    images: List[PropertyImage]
+# class MultiplePropertyImages(BaseModel):
+#     images: List[PropertyImage]
 
 
 class PropertyCreate(PropertyBase):
@@ -116,8 +116,7 @@ class PropertyCreate(PropertyBase):
 
 class PropertyResponse(PropertyBase):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    # created_at: str
-    # updated_at: str
+    rented: Optional[bool] = False
     isAvailable: Optional[bool] = True
 
 

@@ -6,8 +6,7 @@ from app.models import (
     PropertyUpdate,
     PropertyCollection,
     PropertyResponse,
-    PropertyImage,
-    MultiplePropertyImages
+
 )
 from bson import ObjectId
 from pymongo.collection import ReturnDocument
