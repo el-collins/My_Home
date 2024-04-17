@@ -16,8 +16,8 @@ async def login_user_route(form_data: Annotated[OAuth2PasswordRequestForm, Depen
     :param form_data: The UserLogin data containing the user's email and password.
     :return: The access token and token type if the authentication is successful, an HTTPException otherwise.
     """
-    user = await authenticate_user(form_data.username, form_data.password)
-    if not user:
+    user_info = await authenticate_user(form_data.username, form_data.password)
+    if not user_info:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -25,6 +25,6 @@ async def login_user_route(form_data: Annotated[OAuth2PasswordRequestForm, Depen
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = (create_access_token(
-        data={"sub": user["email"]}, expires_delta=access_token_expires
+        data=user_info, expires_delta=access_token_expires
     ))
     return {"access_token": access_token, "token_type": "bearer"}
