@@ -60,16 +60,16 @@ class UserLogin(BaseModel):
 # # Listing models
 
 class PropertyFeatures(BaseModel):
-    number_of_rooms: int
-    number_of_toilets: int
+    number_of_rooms: int | None = None
+    number_of_toilets: int | None = None
     running_water: Optional[bool] = True
     POP_available: Optional[bool] = True
 
 
 class PropertyLocation (BaseModel):
-    street_address: str
-    area: str
-    state: str
+    street_address: str | None = None
+    area: str | None = None
+    state: str | None = None
 
 
 class PropertyBase(BaseModel):
@@ -77,15 +77,14 @@ class PropertyBase(BaseModel):
     Container for a single property record.
     """
 
-    name: str = Field(min_length=3, max_length=50, description="Name of the property",
+    name: str = Field(None, min_length=3, max_length=50, description="Name of the property",
 
                       examples=["New Maryland String"], title="Name")
 
-    price: float = locale.currency
+    price: float
 
-    property_type: str = Field(description="Type of the property",
-                               examples=['Duplex'])
-
+    property_type: str = Field(min_length=3, max_length=50, description="Name of the property",
+                               examples=['New Maryland Home'], title="Name")
     phone_number: PhoneNumber = Field(
         description="Phone number of the property owner", title='Phone Number', examples=["+2347084857362"])
 
@@ -97,11 +96,18 @@ class PropertyBase(BaseModel):
     )
 
 
-class PropertyImage(PropertyBase):
+class PropertyImage(BaseModel):
+    """
+    This add image URL to PropertyBase
+    """
     imageUrl: str
-    # created_at: str
-    # updated_at: str
-    # isActive: Optional[bool] = False
+
+    class Config:
+        orm_mode = True
+
+
+# class MultiplePropertyImages(BaseModel):
+#     images: List[PropertyImage]
 
 
 class PropertyCreate(PropertyBase):
@@ -110,14 +116,14 @@ class PropertyCreate(PropertyBase):
 
 class PropertyResponse(PropertyBase):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    imageUrl: str
+    rented: Optional[bool] = False
+    isAvailable: Optional[bool] = True
 
 
 class PropertyUpdate(PropertyBase):
     """
     A set of optional updates to be made to a document in the database.
     """
-    name: Optional[str] = None
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
@@ -130,10 +136,21 @@ class PropertyCollection(BaseModel):
     A container holding a list of `PropertyBase` instances.
 
     """
-
     properties: List[PropertyBase]
 
 
 class Wishlist(BaseModel):
     user_id: str
     property_id: str
+
+
+class Reviews(BaseModel):
+    """
+    Container for a single review record.
+    """
+    username: str = Field(description="Name of the reviewer")
+    message: str = Field(min_length=5)
+
+
+class ReviewResponse(Reviews):
+    id: str
