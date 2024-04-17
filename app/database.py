@@ -15,11 +15,17 @@ def get_db_client():
     return client
 
 
-users_database = get_db_client().Users # Get the Users database
-user_collection = users_database.users # Get the users collection from the Users database
+users_database = get_db_client().Users  # Get the Users database
+# Get the users collection from the Users database
+user_collection = users_database.users
 
-property_database = get_db_client().Properties # Get the Properties database
-property_collection = property_database.properties # Get the properties collection from the Properties database
+property_database = get_db_client().Properties  # Get the Properties database
+# Get the properties collection from the Properties database
+property_collection = property_database.properties
+
+review_database = get_db_client().Review
+review_collection = review_database.reviews
+
 
 wishlist_database = get_db_client().Wishlist
 wishlist_collection = wishlist_database.wishlists
