@@ -97,6 +97,9 @@ class PropertyBase(BaseModel):
 
 
 class PropertyImage(PropertyBase):
+    """
+    This add image URL to PropertyBase
+    """
     imageUrl: str
 
 
@@ -106,16 +109,15 @@ class PropertyCreate(PropertyBase):
 
 class PropertyResponse(PropertyBase):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    created_at: str
-    updated_at: str
-    isActive: Optional[bool] = True
+    # created_at: str
+    # updated_at: str
+    isAvailable: Optional[bool] = True
 
 
 class PropertyUpdate(PropertyBase):
     """
     A set of optional updates to be made to a document in the database.
     """
-    # name: Optional[str] = None
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
@@ -134,3 +136,15 @@ class PropertyCollection(BaseModel):
 class Wishlist(BaseModel):
     user_id: str
     property_id: str
+
+
+class Reviews(BaseModel):
+    """
+    Container for a single review record.
+    """
+    username: str = Field(description="Name of the reviewer")
+    message: str = Field(min_length=5)
+
+
+class ReviewResponse(Reviews):
+    id: str
