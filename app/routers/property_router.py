@@ -29,7 +29,7 @@ UploadImage = f"/image-upload/"
     response_model_by_alias=False,
 )
 async def create_property(
-    property: PropertyBase = Body(...), PropertyResponse=Depends(get_current_user)
+    property: PropertyBase = Body(...)
 ):
     """
     Insert a new property record.
@@ -84,7 +84,7 @@ async def show_property(id: str):
     response_model=PropertyUpdate,
     response_model_by_alias=False,
 )
-async def update_property(id: str, property: PropertyUpdate = Body(...)):
+async def update_property(id: str, property: PropertyUpdate):
     """
     Update individual fields of an existing property record.
 
@@ -104,7 +104,8 @@ async def update_property(id: str, property: PropertyUpdate = Body(...)):
         if update_result is not None:
             return update_result
         else:
-            raise HTTPException(status_code=404, detail=f"Property {id} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Property {id} not found")
 
     # The update is empty, but we should still return the matching document:
     if (
@@ -134,7 +135,8 @@ async def uploadPropertyImage(id: str, file: UploadFile = File(...)):
     Add house images by `id`cof property ownerd.
     """
     result = await resultVerification(id)
-    imageUrl = save_picture(file=file, folderName="properties", fileName=result["name"])
+    imageUrl = save_picture(
+        file=file, folderName="properties", fileName=result["name"])
     done = await savePicture(id, imageUrl)
     return getResponse(
         done, errorMessage="An error occurred while saving property image."

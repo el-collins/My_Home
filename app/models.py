@@ -13,8 +13,8 @@ class User(BaseModel):
     name: str
     email: EmailStr = Field(..., min_length=6)
     password: Annotated[str, StringConstraints(min_length=8)]
-    phone_number: PhoneNumber =Field(description="user phone number", title="phone number")
-    
+    phone_number: PhoneNumber = Field(
+        description="user phone number", title="phone number")
 
     @validator("password")
     # Custom validator for password complexity requirements
@@ -59,16 +59,16 @@ class UserLogin(BaseModel):
 # # Listing models
 
 class PropertyFeatures(BaseModel):
-    number_of_rooms: int
-    number_of_toilets: int
+    number_of_rooms: int | None = None
+    number_of_toilets: int | None = None
     running_water: Optional[bool] = True
     POP_available: Optional[bool] = True
 
 
 class PropertyLocation (BaseModel):
-    street_address: str
-    area: str
-    state: str
+    street_address: str | None = None
+    area: str | None = None
+    state: str | None = None
 
 
 class PropertyBase(BaseModel):
@@ -76,16 +76,17 @@ class PropertyBase(BaseModel):
     Container for a single property record.
     """
 
-    name: str = Field(min_length=3, max_length=50, description="Name of the property",
+    name: str = Field(None, min_length=3, max_length=50, description="Name of the property",
 
                       examples=["New Maryland String"], title="Name")
 
-    price: float
+    price: float | None = None
 
-    property_type: str = Field(min_length=3, max_length=50, description="Name of the property",
-                               examples=['New Maryland Home'], title="Name")
-    phone_number: PhoneNumber = Field(
-        description="Phone number of the property owner", title='Phone Number', examples=["+2347084857362"])
+    property_type: str = Field(None, description="Type of the property",
+                               examples=['Duplex'], title="Name")
+
+    phone_number: PhoneNumber = Field(None,
+                                      description="Phone number of the property owner", title='Phone Number', examples=["+2347084857362"])
 
     property_location_details: PropertyLocation
     property_features: PropertyFeatures
@@ -97,9 +98,6 @@ class PropertyBase(BaseModel):
 
 class PropertyImage(PropertyBase):
     imageUrl: str
-    # created_at: str
-    # updated_at: str
-    # isActive: Optional[bool] = False
 
 
 class PropertyCreate(PropertyBase):
@@ -108,14 +106,16 @@ class PropertyCreate(PropertyBase):
 
 class PropertyResponse(PropertyBase):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
-    imageUrl: str
+    created_at: str
+    updated_at: str
+    isActive: Optional[bool] = True
 
 
 class PropertyUpdate(PropertyBase):
     """
     A set of optional updates to be made to a document in the database.
     """
-    name: Optional[str] = None
+    # name: Optional[str] = None
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
@@ -128,7 +128,6 @@ class PropertyCollection(BaseModel):
     A container holding a list of `PropertyBase` instances.
 
     """
-
     properties: List[PropertyBase]
 
 
