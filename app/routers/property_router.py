@@ -7,13 +7,14 @@ from app.models import (
     PropertyCollection,
     PropertyResponse,
     PropertyImage,
+    MultiplePropertyImages
 )
 from bson import ObjectId
 from pymongo.collection import ReturnDocument
 from fastapi import Response
 from app.services import savePicture, getResponse, resultVerification
 from app.save_picture import save_picture
-
+from typing import List
 
 router = APIRouter(prefix="/api/v1", tags=["properties"])
 
@@ -129,15 +130,86 @@ async def delete_property(id: str):
     raise HTTPException(status_code=404, detail=f"Property {id} not found")
 
 
+# @router.post(UploadImage + "{id}", status_code=status.HTTP_204_NO_CONTENT)
+# async def uploadPropertyImage(id: str, file: UploadFile = File(...)):
+#     """
+#     Add house images by `id`cof property ownerd.
+#     """
+#     result = await resultVerification(id)
+#     imageUrl = save_picture(
+#         file=file, folderName="properties", fileName=result["name"])
+#     done = await savePicture(id, imageUrl)
+#     return getResponse(
+#         done, errorMessage="An error occurred while saving property image."
+#     )
+
+
 @router.post(UploadImage + "{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def uploadPropertyImage(id: str, file: UploadFile = File(...)):
+async def uploadPropertyImage(id: str, files: List[UploadFile] = File(...)):
     """
-    Add house images by `id`cof property ownerd.
+    Add house images by `id` of property owners.
     """
+    # Assuming `resultVerification` and `savePicture` functions are defined elsewhere
     result = await resultVerification(id)
-    imageUrl = save_picture(
-        file=file, folderName="properties", fileName=result["name"])
-    done = await savePicture(id, imageUrl)
+
+    # List to store image URLs
+    image_urls = []
+    for file in files:
+        # Save each picture and get its URL
+        imageUrl = save_picture(
+            file=file, folderName="properties", fileName=result["name"])
+        image_urls.append(imageUrl)
+
+    # Convert PropertyImage instances into dictionaries
+    property_images = [{"imageUrl": url} for url in image_urls]
+
+    # Assuming `savePicture` expects a list of dictionaries
+    done = await savePicture(id, property_images)
+
     return getResponse(
         done, errorMessage="An error occurred while saving property image."
     )
+
+# async def uploadPropertyImage(id: str, files: List[UploadFile] = File(...)):
+#     """
+#     Add house images by `id` of property owners.
+#     """
+#     # Assuming `resultVerification` and `savePicture` functions are defined elsewhere
+#     result = await resultVerification(id)
+
+#     # List to store image URLs
+#     image_urls = []
+#     for file in files:
+#         # Save each picture and get its URL
+#         imageUrl = save_picture(
+#             file=file, folderName="properties", fileName=result["name"])
+#         image_urls.append(imageUrl)
+
+#     # Create PropertyImage instances for each image
+#     property_images = [PropertyImage(imageUrl=url) for url in image_urls]
+
+#     # Assuming `savePicture` returns a boolean indicating success
+#     done = await savePicture(id, property_images)
+
+#     return getResponse(
+#         done, errorMessage="An error occurred while saving property image."
+#     )
+
+
+# @router.post(UploadImage + "{id}", status_code=status.HTTP_204_NO_CONTENT)
+# async def uploadPropertyImage(id: str, images: MultiplePropertyImages):
+#     """
+#     Add house images by `id` of property owners.
+#     """
+#     # Assuming `resultVerification` and `savePicture` functions are defined elsewhere
+#     result = await resultVerification(id)
+
+#     # Extract image URLs from the model
+#     image_urls = [image.imageUrl for image in images.images]
+
+#     # Assuming `savePicture` returns a boolean indicating success
+#     done = await savePicture(id, image_urls)
+
+#     return getResponse(
+#         done, errorMessage="An error occurred while saving property image."
+#     )

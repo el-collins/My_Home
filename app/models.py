@@ -96,11 +96,18 @@ class PropertyBase(BaseModel):
     )
 
 
-class PropertyImage(PropertyBase):
+class PropertyImage(BaseModel):
     """
     This add image URL to PropertyBase
     """
     imageUrl: str
+
+    class Config:
+        orm_mode = True
+
+
+class MultiplePropertyImages(BaseModel):
+    images: List[PropertyImage]
 
 
 class PropertyCreate(PropertyBase):

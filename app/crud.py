@@ -1,9 +1,14 @@
 from typing import List
 from app.database import user_collection, property_collection, wishlist_collection
-from app.models import UserResponse, User, Wishlist
+from app.models import UserResponse, User, Wishlist, PropertyImage
 from bson import ObjectId  # type: ignore
+from fastapi import UploadFile, File
+from app.services import savePicture, getResponse, resultVerification
+from app.save_picture import save_picture
 
 # Asynchronously retrieves a user from the database using their email address
+
+
 async def get_user(email: str):
     user = await user_collection.find_one({"email": email})
     return user
@@ -18,6 +23,8 @@ async def register_user(user_data):
     return user_data
 
 # Asynchronously retrieves a user from the database using their ID
+
+
 async def get_user_by_id(user_id: str):
     """Get user by ID."""
     user = await user_collection.find_one({"_id": ObjectId(user_id)})
@@ -39,7 +46,6 @@ async def get_all_users() -> List[UserResponse]:
     return users
 
 
-
 # Asynchronously retrieves all wishlist items for a user
 async def get_user_wishlist(user_id: str):
     """
@@ -55,7 +61,6 @@ async def get_user_wishlist(user_id: str):
         wishlist_items.append(wishlist_item)
     print(wishlist_items)
     return wishlist_items
-
 
 
 # # Asynchronously adds an item to a user's wishlist
@@ -79,6 +84,8 @@ async def remove_wishlist(user_id: str, property_id: str):
     return response.deleted_count
 
 # Asynchronously creates a new property in the database
+
+
 async def create_property(property_data):
 
     result = await user_collection.insert_one(property_data.dict())
@@ -88,11 +95,15 @@ async def create_property(property_data):
     return property_data
 
 # Asynchronously retrieves a property from the database using its ID
+
+
 async def get_property(property_id: str) -> dict:
     property_data = await property_collection.find_one({"_id": property_id})
     return property_data
 
 # Asynchronously updates a property in the database using its ID and updated data
+
+
 async def update_property(property_id: str, updated_data: dict) -> dict:
     await property_collection.update_one({"_id": property_id}, {"$set": updated_data})
     return await get_property(property_id)
@@ -112,3 +123,27 @@ async def add_to_wishlist(wishlist_item: Wishlist):
         raise ValueError("Failed to register property") from e
 
 
+async def uploadPropertyImage(id: str, files: List[UploadFile] = File(...)):
+    """
+    Add house images by `id` of property owners.
+    """
+    # Assuming `resultVerification` and `savePicture` functions are defined elsewhere
+    result = await resultVerification(id)
+
+    # List to store image URLs
+    image_urls = []
+    for file in files:
+        # Save each picture and get its URL
+        imageUrl = save_picture(
+            file=file, folderName="properties", fileName=result["name"])
+        image_urls.append(imageUrl)
+
+    # Create PropertyImage instances for each image
+    property_images = [PropertyImage(imageUrl=url) for url in image_urls]
+
+    # Assuming `savePicture` returns a boolean indicating success
+    done = await savePicture(id, property_images)
+
+    return getResponse(
+        done, errorMessage="An error occurred while saving property image."
+    )
