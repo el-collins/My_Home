@@ -52,10 +52,13 @@ def get_password_hash(password: str) -> str:
 
 async def authenticate_user(email: str, password: str):
     user = await get_user(email)
+    print(user)
     if not user or not verify_password(password, user["password"]):
         return None
-    user_info = {"sub": user["email"], "email": user["email"], "id": str(user["_id"]), "name": user["name"], "phone_number": user["phone_number"]}
+    user_info = {"sub": user["email"], "id": str(user["id"])}
     return user_info
+
+
 
 # Function to create a new access token with the provided data and expiration time
 def create_access_token(data: dict, expires_delta: Annotated[timedelta, None] = None):

@@ -1,22 +1,25 @@
 from typing import List
 from app.database import user_collection, property_collection, wishlist_collection
-from app.models import UserResponse, User, Wishlist
+from app.models import UserResponse, User
 from bson import ObjectId  # type: ignore
 
 
 # Asynchronously retrieves a user from the database using their email address
 async def get_user(email: str):
     user = await user_collection.find_one({"email": email})
+    if user:
+        user["_id"] = str(user["_id"])  # Convert ObjectId to string
+        user["id"] = user.pop("_id")  # Rename _id to id
     return user
 
 
 # Asynchronously registers a new user in the database
 async def register_user(user_data):
-
     result = await user_collection.insert_one(user_data)
     # Adds the database-generated ID to user data
-    user_data["_id"] = result.inserted_id
-    return user_data
+    user_data["_id"] = str(result.inserted_id)
+    # user_data["id"] = user_data.pop("_id")  # Rename _id to id
+    # return user_data
 
 
 # Asynchronously retrieves a user from the database using their ID
@@ -59,26 +62,40 @@ async def get_user_wishlist(user_id: str):
 
 
 # Asynchronously adds an item to a user's wishlist
-async def add_to_wishlist(wishlist_data):
-    # Inserts the wishlist item into the database
-    await wishlist_collection.insert_one(dict(wishlist_data))
-    # Creates a JSON-serializable response object
-    response = {**dict(wishlist_data)}
-    return response
+# async def add_to_wishlist(wishlist_data):
+#     # Inserts the wishlist item into the database
+#     await wishlist_collection.insert_one(dict(wishlist_data))
+#     # Creates a JSON-serializable response object
+#     response = {**dict(wishlist_data)}
+#     return response
+
+
+async def add_to_wishlist(user_id: str, property_id: str):
+    # Convert user_id
+    user_id = ObjectId(user_id)
+
+    # Add property_id to the user's wishlist
+    await user_collection.update_one(
+        {"_id": user_id}, {"$push": {"wishlist": property_id}}
+    )
+
+    # Return the updated user
+    # user = await user_collection.find_one({"_id": user_id})
+    # user["_id"] = str(user["_id"])
+    # return user
 
 
 # Asynchronously removes an item from a user's wishlist
-async def remove_wishlist(user_id: str, property_id: str):
-    """
-    Remove a property from the user's wishlist.
-    """
+# from bson import ObjectId
 
-    # Finds and deletes the wishlist item based on user_id and property_id
-    response = await wishlist_collection.delete_one(
-        {"user_id": user_id, "property_id": property_id}
+async def remove_from_wishlist(user_id: str, property_id: str):
+    # Convert user_id
+    user_id = ObjectId(user_id)
+
+    # Remove property_id from the user's wishlist
+    await user_collection.update_one(
+        {"_id": user_id}, {"$pull": {"wishlist": property_id}}
     )
-    return response.deleted_count
-
 
 # Asynchronously creates a new property in the database
 async def create_property(property_data):

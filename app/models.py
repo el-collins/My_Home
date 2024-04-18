@@ -1,10 +1,9 @@
 from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator, ConfigDict  # type: ignore
 from typing import List, Annotated
-from datetime import datetime
 from typing import Optional
 from app.database import PyObjectId
 from bson import ObjectId
-from pydantic_extra_types.phone_numbers import PhoneNumber
+from pydantic_extra_types.phone_numbers import PhoneNumber # type: ignore
 from enum import Enum
 import locale
 
@@ -14,7 +13,7 @@ class User(BaseModel):
     email: EmailStr = Field(..., min_length=6)
     password: Annotated[str, StringConstraints(min_length=8)]
     phone_number: PhoneNumber =Field(description="user phone number", title="phone number")
-    
+
 
     @validator("password")
     # Custom validator for password complexity requirements
@@ -34,6 +33,8 @@ class User(BaseModel):
         # Hash the password using passlib
         return value
 
+class UserResgister(User):
+    wishlist: List[str] = []
 
 class UserResponse(User):
     id: str

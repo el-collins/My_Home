@@ -14,7 +14,8 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
 
     # The number of minutes before an access token expires.
-    access_token_expire_minutes: int = 30
+    # 8 days access token expire minutes
+    access_token_expire_minutes: int = 60 * 24 * 8
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
     GOOGLE_REDIRECT_URI: str = os.getenv("GOOGLE_REDIRECT_URI", "")
