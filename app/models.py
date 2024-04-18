@@ -143,14 +143,9 @@ class Wishlist(BaseModel):
     user_id: str
     property_id: str
 
+class ForgetPasswordRequest(BaseModel):
+    email: EmailStr
 
-class Reviews(BaseModel):
-    """
-    Container for a single review record.
-    """
-    username: str = Field(description="Name of the reviewer")
-    message: str = Field(min_length=5)
-
-
-class ReviewResponse(Reviews):
-    id: str
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    new_password: str

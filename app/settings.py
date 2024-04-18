@@ -21,5 +21,8 @@ class Settings(BaseSettings):
     GOOGLE_REDIRECT_URI: str = os.getenv("GOOGLE_REDIRECT_URI", "")
     APP_BASE_URL: str = "http://127.0.0.1:8000"
     SECRET_KEY: str  = "cabcf753bc8f56d01e6183fa379e35601118288d148726ee"
+    FORGET_PASSWORD_URL: str  = 'api/v1/auth/forget-password'
+    RESET_PASSWORD_URL: str  = 'api/v1/auth/reset-password'
+    MAIL_FROM_NAME="MyHome",
 
 settings = Settings()
