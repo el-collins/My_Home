@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status, Body, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, status, Body, UploadFile, File, Form
 from app.database import property_collection
 from app.dependencies import get_current_user
 from app.models import (
@@ -6,6 +6,7 @@ from app.models import (
     PropertyUpdate,
     PropertyCollection,
     PropertyResponse,
+    PropertyCreate
 
 )
 from bson import ObjectId
@@ -14,6 +15,7 @@ from fastapi import Response
 from app.services import savePicture, getResponse, resultVerification
 from app.save_picture import save_picture
 from typing import List
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/v1", tags=["properties"])
 
@@ -29,20 +31,54 @@ UploadImage = f"/image-upload/"
     response_model_by_alias=False,
 )
 async def create_property(
-    property: PropertyBase = Body(...)
+    name: str = Form(...),
+    price: float = Form(...),
+    property_type: str = Form(...),
+    phone_number: str = Form(...),
+    street_address: str = Form(...),
+    area: str = Form(...),
+    state: str = Form(...),
+    number_of_rooms: int = Form(...),
+    number_of_toilets: int = Form(...)
 ):
     """
     Insert a new property record.
 
     A unique `id` will be created and provided in the response.
     """
-    new_property = await property_collection.insert_one(
-        property.model_dump(by_alias=True, exclude=["id"])
-    )
-    created_property = await property_collection.find_one(
-        {"_id": new_property.inserted_id}
-    )
+    property_data = {
+        "name": name,
+        "price": price,
+        "property_type": property_type,
+        "phone_number": phone_number,
+        "property_location_details": {
+            "street_address": street_address,
+            "area": area,
+            "state": state
+        },
+        "property_features": {
+            "number_of_rooms": number_of_rooms,
+            "number_of_toilets": number_of_toilets
+        },
+    }
+    new_property = await property_collection.insert_one(property_data)
+    created_property = await property_collection.find_one({"_id": new_property.inserted_id})
     return created_property
+# async def create_property(
+#     property: PropertyBase = Body(...)
+# ):
+#     """
+#     Insert a new property record.
+
+#     A unique `id` will be created and provided in the response.
+#     """
+#     new_property = await property_collection.insert_one(
+#         property.model_dump(by_alias=True, exclude=["id"])
+#     )
+#     created_property = await property_collection.find_one(
+#         {"_id": new_property.inserted_id}
+#     )
+#     return created_property
 
 
 @router.get(

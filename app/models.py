@@ -106,10 +106,6 @@ class PropertyImage(BaseModel):
         orm_mode = True
 
 
-# class MultiplePropertyImages(BaseModel):
-#     images: List[PropertyImage]
-
-
 class PropertyCreate(PropertyBase):
     owner_id: int
 
