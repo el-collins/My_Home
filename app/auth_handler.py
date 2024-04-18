@@ -100,3 +100,12 @@ def create_reset_password_token(email: str):
     token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
     return token
 
+
+def decode_reset_password_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY,
+                   algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        return email
+    except JWTError:
+        return None 

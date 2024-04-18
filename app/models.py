@@ -149,3 +149,15 @@ class ForgetPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
     new_password: str
+
+class MessageSchema(BaseModel):
+    subject: str
+    recipients: List[str]
+    body: dict
+
+
+class MessageResponse(BaseModel):
+    message_id: str
+    subject: str
+    recipients: List[str]
+    body: dict
