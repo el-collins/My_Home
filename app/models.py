@@ -135,3 +135,10 @@ class PropertyCollection(BaseModel):
 class Wishlist(BaseModel):
     user_id: str
     property_id: str
+
+class ForgetPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    new_password: str

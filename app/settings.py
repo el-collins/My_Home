@@ -14,11 +14,14 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
 
     # The number of minutes before an access token expires.
-    access_token_expire_minutes: int = 30
+    access_token_expire_minutes: int = 30 
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
     GOOGLE_REDIRECT_URI: str = os.getenv("GOOGLE_REDIRECT_URI", "")
     APP_BASE_URL: str = "http://127.0.0.1:8000"
     SECRET_KEY: str  = "cabcf753bc8f56d01e6183fa379e35601118288d148726ee"
+    FORGET_PASSWORD_URL: str  = 'api/v1/auth/forget-password'
+    RESET_PASSWORD_URL: str  = 'api/v1/auth/reset-password'
+    MAIL_FROM_NAME="MyHome",
 
 settings = Settings()

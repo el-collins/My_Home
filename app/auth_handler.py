@@ -89,3 +89,11 @@ def decode_token(token: str):
         return payload
     except JWTError:
         return None
+
+
+
+def create_reset_password_token(email: str):
+    data = {"sub": email, "exp": datetime.utcnow() + timedelta(hours=10)}
+    token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+    return token
+

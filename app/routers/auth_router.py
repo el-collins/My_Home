@@ -1,8 +1,11 @@
 from datetime import timedelta
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm # type: ignore
-from app.auth_handler import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token
+from app.auth_handler import ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user, create_access_token, create_reset_password_token, generate_password_reset_token, get_password_hash
+from app.crud import get_user
+from app.models import ForgetPasswordRequest, ResetPasswordRequest
+from app.settings import settings
 
 # Initialize the APIRouter with a prefix of "/auth" and a tag of "auth"
 router = APIRouter(prefix="/api", tags=["login"])
@@ -28,3 +31,64 @@ async def login_user_route(form_data: Annotated[OAuth2PasswordRequestForm, Depen
         data=user_info, expires_delta=access_token_expires
     ))
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+
+# forget password route
+# @router.post("/forget-password")
+@router.post("/password-recovery/{email}", tags=["forget_password"])
+async def forget_password_route(
+    # background_tasks: BackgroundTasks, 
+    fpr: ForgetPasswordRequest):
+    try:
+        user =  await get_user(email = fpr.email)
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Invalid email address")
+        
+        secret_token = create_reset_password_token(email = user['email'])
+        forget_url_link = f"{settings.APP_BASE_URL}{settings.FORGET_PASSWORD_URL}/{secret_token}"
+
+        email_body = {
+            "company": settings.MAIL_FROM_NAME,
+            "link_expiry_min": settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        }
+
+        
+# # forget password route
+# # @router.post("/forget-password")
+# @router.post("/password-recovery/{email}", tags=["forget_password"])
+# async def forget_password_route(
+#     # background_tasks: BackgroundTasks, 
+#     fpr: ForgetPasswordRequest):
+#     try:
+#         user =  await get_user(email = fpr.email)
+#         if user is None:
+#             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Invalid email address")
+        
+#         secret_token = create_reset_password_token(email = user['email'])
+#         forget_url_link = f"{settings.APP_BASE_URL}{settings.FORGET_PASSWORD_URL}/{secret_token}"
+        
+
+
+
+
+    except Exception as e:
+        print(e)
+
+
+
+# reset password route
+@router.post("/reset-password")
+async def reset_password_route(
+    reset_password_request: ResetPasswordRequest):
+    try:
+        user = await get_user(email = reset_password_request.email)
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Invalid email address")
+        
+        user['password'] = get_password_hash(password = reset_password_request.new_password)
+        await user.save()
+        return "Password reset successful"
+
+    except Exception as e:
+        print(e)
