@@ -6,7 +6,8 @@ from app.models import (
     PropertyUpdate,
     PropertyCollection,
     PropertyResponse,
-    PropertyCreate
+    PropertyCreate,
+    PropertyImage
 
 )
 from bson import ObjectId
@@ -81,19 +82,121 @@ async def create_property(
 #     return created_property
 
 
-@router.get(
-    "/properties/",
-    response_description="List all properties",
-    response_model=PropertyCollection,
-    response_model_by_alias=False,
-)
-async def list_properties():
-    """
-    List all of the properties data in the database.
+# @router.get(
+#     "/properties/",
+#     response_description="List all properties",
+#     response_model=PropertyCollection,
+#     response_model_by_alias=False,
+# )
+# async def list_properties():
+#     """
+#     List all of the properties data in the database.
 
-    The response is unpaginated and limited to 1000 results.
+#     The response is unpaginated and limited to 1000 results.
+#     """
+#     return PropertyCollection(properties=await property_collection.find().to_list(1000))
+
+
+# @router.get("/properties_with_images/", response_model=List[PropertyImage])
+# async def get_properties_with_images():
+#     """
+#     Retrieve all properties along with their images.
+#     """
+#     properties_with_images = []
+#     # Assuming property_collection is a MongoDB collection object
+#     cursor = property_collection.find({})
+
+#     for property_data in await cursor.to_list(length=100):
+#         property_with_image = PropertyImage(**property_data)
+#         properties_with_images.append(property_with_image)
+
+#     return properties_with_images
+
+@router.post("/properties_with_images/", response_model=PropertyImage, status_code=status.HTTP_201_CREATED)
+async def create_property_with_images(
+    name: str = Form(...),
+    price: float = Form(...),
+    property_type: str = Form(...),
+    phone_number: str = Form(...),
+    street_address: str = Form(...),
+    area: str = Form(...),
+    state: str = Form(...),
+    number_of_rooms: int = Form(...),
+    number_of_toilets: int = Form(...),
+    images: List[UploadFile] = File(...)
+):
     """
-    return PropertyCollection(properties=await property_collection.find().to_list(1000))
+    Create a new property with different images.
+    """
+    # Save property data to database
+    property_data = {
+        "name": name,
+        "price": price,
+        "property_type": property_type,
+        "phone_number": phone_number,
+        "property_location_details": {
+            "street_address": street_address,
+            "area": area,
+            "state": state
+        },
+        "property_features": {
+            "number_of_rooms": number_of_rooms,
+            "number_of_toilets": number_of_toilets
+        }
+    }
+    new_property = await property_collection.insert_one(property_data)
+    created_property_id = new_property.inserted_id
+
+    # Save images to file system or cloud storage and get their URLs
+    image_urls = []
+    for image in images:
+        # Save the image to file system or cloud storage
+        # Example: image.save("path/to/save/image.jpg")
+        # Get the URL of the saved image
+        # Example: image_url = "https://example.com/path/to/save/image.jpg"
+        # For demonstration, using filename as URL
+        image_urls.append(image.filename)
+
+    # Update property with image URLs
+    await property_collection.update_one({"_id": created_property_id}, {"$set": {"imageUrls": image_urls}})
+
+    # Retrieve the created property with image URLs
+    created_property = await property_collection.find_one({"_id": created_property_id})
+    if created_property is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
+
+    # Create and return PropertyImage response
+    return PropertyImage(**created_property)
+
+
+@router.get("/properties_with_images/", response_model=List[PropertyImage])
+async def get_properties_with_images():
+    """
+    Retrieve all properties along with their images.
+    """
+    properties_with_images = []
+    cursor = property_collection.find({})
+
+    for property_data in await cursor.to_list(length=100):
+        # Extract the imageUrls field from the property data, default to an empty list if not present
+        image_urls = property_data.get('imageUrls', [])
+
+        # Create a PropertyImage instance for each property data
+        property_with_image = PropertyImage(
+            name=property_data.get('name'),
+            price=property_data.get('price'),
+            property_type=property_data.get('property_type'),
+            phone_number=property_data.get('phone_number'),
+            property_location_details=property_data.get(
+                'property_location_details'),
+            property_features=property_data.get('property_features'),
+            imageUrls=image_urls
+        )
+
+        properties_with_images.append(property_with_image)
+
+    return properties_with_images
 
 
 @router.get(
@@ -114,42 +217,66 @@ async def show_property(id: str):
     raise HTTPException(status_code=404, detail=f"Property {id} not found")
 
 
-@router.patch(
-    "/properties/{id}",
-    response_description="Update a property",
-    response_model=PropertyUpdate,
-    response_model_by_alias=False,
-)
-async def update_property(id: str, property: PropertyUpdate):
+# @router.patch(
+#     "/properties/{id}",
+#     response_description="Update a property",
+#     response_model=PropertyUpdate,
+#     response_model_by_alias=False,
+# )
+# async def update_property(id: str, property: PropertyUpdate):
+#     """
+#     Update individual fields of an existing property record.
+
+#     Only the provided fields will be updated.
+#     Any missing or `null` fields will be ignored.
+#     """
+#     property = {
+#         k: v for k, v in property.model_dump(by_alias=True).items() if v is not None
+#     }
+
+#     if len(property) >= 1:
+#         update_result = await property_collection.find_one_and_update(
+#             {"_id": ObjectId(id)},
+#             {"$set": property},
+#             return_document=ReturnDocument.AFTER,
+#         )
+#         if update_result is not None:
+#             return update_result
+#         else:
+#             raise HTTPException(
+#                 status_code=404, detail=f"Property {id} not found")
+
+#     # The update is empty, but we should still return the matching document:
+#     if (
+#         existing_property := await property_collection.find_one({"_id": id})
+#     ) is not None:
+#         return existing_property
+
+#     raise HTTPException(status_code=404, detail=f"Property {id} not found")
+
+
+@router.patch("/property/{property_id}/", response_model=PropertyUpdate)
+async def update_property(
+    property_id: str,
+    property_update: PropertyUpdate
+):
     """
-    Update individual fields of an existing property record.
-
-    Only the provided fields will be updated.
-    Any missing or `null` fields will be ignored.
+    Update a property by ID.
     """
-    property = {
-        k: v for k, v in property.model_dump(by_alias=True).items() if v is not None
-    }
+    # Check if property exists
+    existing_property = await property_collection.find_one({"_id": property_id})
+    if existing_property is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Property not found")
 
-    if len(property) >= 1:
-        update_result = await property_collection.find_one_and_update(
-            {"_id": ObjectId(id)},
-            {"$set": property},
-            return_document=ReturnDocument.AFTER,
-        )
-        if update_result is not None:
-            return update_result
-        else:
-            raise HTTPException(
-                status_code=404, detail=f"Property {id} not found")
+    # Update property fields
+    # Exclude fields with None values
+    update_data = property_update.dict(exclude_unset=True)
+    await property_collection.update_one({"_id": property_id}, {"$set": update_data})
 
-    # The update is empty, but we should still return the matching document:
-    if (
-        existing_property := await property_collection.find_one({"_id": id})
-    ) is not None:
-        return existing_property
-
-    raise HTTPException(status_code=404, detail=f"Property {id} not found")
+    # Return updated property
+    updated_property = await property_collection.find_one({"_id": property_id})
+    return updated_property
 
 
 @router.delete("/properties/{id}", response_description="Delete a property")

@@ -88,19 +88,19 @@ class PropertyBase(BaseModel):
     phone_number: PhoneNumber = Field(None,
                                       description="Phone number of the property owner", title='Phone Number', examples=["+2347084857362"])
 
-    property_location_details: PropertyLocation
-    property_features: PropertyFeatures
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
+    property_location_details: Optional[PropertyLocation] = None
+    property_features: Optional[PropertyFeatures] = None
+
+    class Config:
+        populate_by_name = True
+        arbitrary_types_allowed = True
 
 
-class PropertyImage(BaseModel):
+class PropertyImage(PropertyBase):
     """
     This add image URL to PropertyBase
     """
-    imageUrl: str
+    imageUrls: List[str] = []
 
     class Config:
         orm_mode = True
@@ -116,15 +116,41 @@ class PropertyResponse(PropertyBase):
     isAvailable: Optional[bool] = True
 
 
-class PropertyUpdate(PropertyBase):
+# class PropertyUpdate(PropertyBase):
+#     """
+#     A set of optional updates to be made to a document in the database.
+#     """
+#     model_config = ConfigDict(
+#         arbitrary_types_allowed=True,
+#         json_encoders={ObjectId: str},
+#     )
+#     is_available: Optional[bool] = True
+
+
+class PropertyUpdate(BaseModel):
     """
-    A set of optional updates to be made to a document in the database.
+    Model for updating a property.
     """
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True,
-        json_encoders={ObjectId: str},
-    )
+
+    # name: Optional[str] = Field(None, min_length=3, max_length=50, description="Name of the property",
+    #                             examples=["Updated Maryland String"], title="Name")
+
+    # price: Optional[float] = None
+
+    # property_type: Optional[str] = Field(None, description="Type of the property",
+    #                                      examples=['Apartment'], title="Name")
+
+    # phone_number: Optional[str] = Field(None,
+    #                                     description="Phone number of the property owner", title='Phone Number',
+    #                                     examples=["+2347084857362"])
+
+    # property_location_details: Optional[PropertyLocation] = None
+    # property_features: Optional[PropertyFeatures] = None
+
     is_available: Optional[bool] = True
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class PropertyCollection(BaseModel):
