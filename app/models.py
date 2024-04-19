@@ -7,6 +7,7 @@ from bson import ObjectId
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from enum import Enum
 import locale
+import locale
 
 
 class User(BaseModel):
@@ -80,13 +81,12 @@ class PropertyBase(BaseModel):
 
                       examples=["New Maryland String"], title="Name")
 
-    price: float | None = None
+    price: float
 
-    property_type: str = Field(None, description="Type of the property",
-                               examples=['Duplex'], title="Name")
-
-    phone_number: PhoneNumber = Field(None,
-                                      description="Phone number of the property owner", title='Phone Number', examples=["+2347084857362"])
+    property_type: str = Field(min_length=3, max_length=50, description="Name of the property",
+                               examples=['New Maryland Home'], title="Name")
+    phone_number: PhoneNumber = Field(
+        description="Phone number of the property owner", title='Phone Number', examples=["+2347084857362"])
 
     property_location_details: Optional[PropertyLocation] = None
     property_features: Optional[PropertyFeatures] = None
