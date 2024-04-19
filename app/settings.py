@@ -41,6 +41,9 @@ class Settings(BaseSettings):
     USE_CREDENTIALS = True,
     VALIDATE_CERTS = True
 )
+    S3_ACCESS_KEY: str = 'AKIA47CRU4UEBPPE6H76'
+    S3_SECRET_KEY: str = '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'
+    BUCKET_NAME: str = 'myhome1'
 
 
 settings = Settings()

@@ -64,7 +64,6 @@ async def get_user_wishlist(user_id: str):
         # wishlist_item["id"] = wishlist_item.pop("_id")
 
         wishlist_items.append(wishlist_item)
-    print(wishlist_items)
     return wishlist_items
 
 

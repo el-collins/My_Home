@@ -173,3 +173,4 @@ class MessageResponse(BaseModel):
     subject: str
     recipients: List[str]
     body: dict
+

@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import user_router, auth_router, property_router, wishlist_router, reviews_router
+from app.routers import user_router, auth_router, property_router, wishlist_router, reviews_router, property
 from fastapi.staticfiles import StaticFiles
+from uvicorn import run
 
 
 app = FastAPI(title="My home API")
@@ -26,3 +27,5 @@ app.include_router(auth_router.router)
 app.include_router(property_router.router)
 app.include_router(wishlist_router.router)
 app.include_router(reviews_router.router)
+app.include_router(property.router)
+
