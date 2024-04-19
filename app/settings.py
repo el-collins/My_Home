@@ -1,6 +1,9 @@
+from typing import Any
 from pydantic_settings import BaseSettings # type: ignore
 import os # Import the os module to interact with the operating system
 from dotenv import load_dotenv # type: ignore # Import the load_dotenv function from the dotenv module to load environment variables from a.env file
+from fastapi_mail import ConnectionConfig
+
 
 load_dotenv() # Load environment variables from the.env file
 class Settings(BaseSettings):
@@ -14,11 +17,33 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
 
     # The number of minutes before an access token expires.
-    access_token_expire_minutes: int = 30
+    # 8 days access token expire minutes
+    access_token_expire_minutes: int = 60 * 24 * 8
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
     GOOGLE_REDIRECT_URI: str = os.getenv("GOOGLE_REDIRECT_URI", "")
     APP_BASE_URL: str = "http://127.0.0.1:8000"
     SECRET_KEY: str  = "cabcf753bc8f56d01e6183fa379e35601118288d148726ee"
+    FORGET_PASSWORD_URL: str  = 'api/v1/auth/forget-password'
+    RESET_PASSWORD_URL: str  = 'api/v1/auth/reset-password'
+    
+    FORGET_PASSWORD_LINK_EXPIRE_MINUTES: int = 10
+
+    conf: Any = ConnectionConfig(
+    MAIL_USERNAME = "",
+    MAIL_PASSWORD = "",
+    MAIL_FROM = "elcollinz@email.com",
+    MAIL_PORT = 587,
+    MAIL_SERVER = "",
+    MAIL_FROM_NAME="MyHome",
+    MAIL_STARTTLS = True,
+    MAIL_SSL_TLS = False,
+    USE_CREDENTIALS = True,
+    VALIDATE_CERTS = True
+)
+    S3_ACCESS_KEY: str = 'AKIA47CRU4UEBPPE6H76'
+    S3_SECRET_KEY: str = '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'
+    BUCKET_NAME: str = 'myhome1'
+
 
 settings = Settings()

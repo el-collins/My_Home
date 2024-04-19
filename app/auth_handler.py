@@ -38,17 +38,26 @@ def get_password_hash(password: str) -> str:
 
 
 # Function to authenticate a user using an email and password
+# async def authenticate_user(email: str, password: str):
+#     """
+#     Authenticates a user by retrieving the user from the database using the provided email and verifying the password.
+#     :param email: The user's email address.
+#     :param password: The user's plaintext password.
+#     :return: The user data if the authentication is successful, None otherwise.
+#     """
+#     user = await get_user(email)
+#     if not user or not verify_password(password, user["password"]):
+#         return None
+#     return user
+
 async def authenticate_user(email: str, password: str):
-    """
-    Authenticates a user by retrieving the user from the database using the provided email and verifying the password.
-    :param email: The user's email address.
-    :param password: The user's plaintext password.
-    :return: The user data if the authentication is successful, None otherwise.
-    """
     user = await get_user(email)
+    print(user)
     if not user or not verify_password(password, user["password"]):
         return None
-    return user
+    user_info = {"sub": user["email"], "id": str(user["id"])}
+    return user_info
+
 
 
 # Function to create a new access token with the provided data and expiration time
@@ -83,3 +92,20 @@ def decode_token(token: str):
         return payload
     except JWTError:
         return None
+
+
+
+def create_reset_password_token(email: str):
+    data = {"sub": email, "exp": datetime.utcnow() + timedelta(hours=10)}
+    token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+    return token
+
+
+def decode_reset_password_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY,
+                   algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        return email
+    except JWTError:
+        return None 

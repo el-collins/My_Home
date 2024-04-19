@@ -1,26 +1,29 @@
 from typing import List
 from app.database import user_collection, property_collection, wishlist_collection
-from app.models import UserResponse, User, Wishlist, PropertyImage
+from app.models import UserResponse, User
 from bson import ObjectId  # type: ignore
-from fastapi import UploadFile, File
-from app.services import savePicture, getResponse, resultVerification
-from app.save_picture import save_picture
+
+
 
 # Asynchronously retrieves a user from the database using their email address
 
 
 async def get_user(email: str):
     user = await user_collection.find_one({"email": email})
+    if user:
+        user["_id"] = str(user["_id"])  # Convert ObjectId to string
+        user["id"] = user.pop("_id")  # Rename _id to id
     return user
 
 
 # Asynchronously registers a new user in the database
 async def register_user(user_data):
-
     result = await user_collection.insert_one(user_data)
     # Adds the database-generated ID to user data
-    user_data["_id"] = result.inserted_id
-    return user_data
+    user_data["_id"] = str(result.inserted_id)
+    # user_data["id"] = user_data.pop("_id")  # Rename _id to id
+    # return user_data
+
 
 # Asynchronously retrieves a user from the database using their ID
 
@@ -38,8 +41,8 @@ async def get_all_users() -> List[UserResponse]:
     async for user_data in user_collection.find({}):
 
         # Convert ObjectId to str for JSON serialization
-        user_data['_id'] = str(user_data['_id'])
-        user_data['id'] = user_data.pop('_id')  # Rename _id to id
+        user_data["_id"] = str(user_data["_id"])
+        user_data["id"] = user_data.pop("_id")  # Rename _id to id
         user = UserResponse(**user_data)
         users.append(user)
 
@@ -59,11 +62,10 @@ async def get_user_wishlist(user_id: str):
         # wishlist_item["id"] = wishlist_item.pop("_id")
 
         wishlist_items.append(wishlist_item)
-    print(wishlist_items)
     return wishlist_items
 
 
-# # Asynchronously adds an item to a user's wishlist
+# Asynchronously adds an item to a user's wishlist
 # async def add_to_wishlist(wishlist_data):
 #     # Inserts the wishlist item into the database
 #     await wishlist_collection.insert_one(dict(wishlist_data))
@@ -71,17 +73,32 @@ async def get_user_wishlist(user_id: str):
 #     response = {**dict(wishlist_data)}
 #     return response
 
-# Asynchronously removes an item from a user's wishlist
-async def remove_wishlist(user_id: str, property_id: str):
-    """
-    Remove a property from the user's wishlist.
-    """
 
-    # Finds and deletes the wishlist item based on user_id and property_id
-    response = await wishlist_collection.delete_one(
-        {"user_id": user_id, "property_id": property_id}
+async def add_to_wishlist(user_id: str, property_id: str):
+    # Convert user_id
+    user_id = ObjectId(user_id)
+
+    # Add property_id to the user's wishlist
+    await user_collection.update_one(
+        {"_id": user_id}, {"$push": {"wishlist": property_id}}
     )
-    return response.deleted_count
+
+    # Return the updated user
+    # user = await user_collection.find_one({"_id": user_id})
+    # user["_id"] = str(user["_id"])
+    # return user
+
+
+
+# Asynchronously removes an item from a user's wishlist
+async def remove_from_wishlist(user_id: str, property_id: str):
+    # Convert user_id
+    user_id = ObjectId(user_id)
+
+    # Remove property_id from the user's wishlist
+    await user_collection.update_one(
+        {"_id": user_id}, {"$pull": {"wishlist": property_id}}
+    )
 
 # Asynchronously creates a new property in the database
 
@@ -94,12 +111,14 @@ async def create_property(property_data):
     print(result)
     return property_data
 
+
 # Asynchronously retrieves a property from the database using its ID
 
 
 async def get_property(property_id: str) -> dict:
     property_data = await property_collection.find_one({"_id": property_id})
     return property_data
+
 
 # Asynchronously updates a property in the database using its ID and updated data
 
@@ -115,35 +134,5 @@ async def delete_property(property_id: str) -> dict:
     return {"message": "Property deleted"}
 
 
-async def add_to_wishlist(wishlist_item: Wishlist):
-    try:
-        result = await wishlist_collection.insert_one(wishlist_item.dict())
-        return {**wishlist_item.dict(), "_id": str(result.inserted_id)}
-    except Exception as e:
-        raise ValueError("Failed to register property") from e
 
 
-async def uploadPropertyImage(id: str, files: List[UploadFile] = File(...)):
-    """
-    Add house images by `id` of property owners.
-    """
-    # Assuming `resultVerification` and `savePicture` functions are defined elsewhere
-    result = await resultVerification(id)
-
-    # List to store image URLs
-    image_urls = []
-    for file in files:
-        # Save each picture and get its URL
-        imageUrl = save_picture(
-            file=file, folderName="properties", fileName=result["name"])
-        image_urls.append(imageUrl)
-
-    # Create PropertyImage instances for each image
-    property_images = [PropertyImage(imageUrl=url) for url in image_urls]
-
-    # Assuming `savePicture` returns a boolean indicating success
-    done = await savePicture(id, property_images)
-
-    return getResponse(
-        done, errorMessage="An error occurred while saving property image."
-    )
