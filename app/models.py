@@ -80,19 +80,6 @@ class ResetPasswordRequest(BaseModel):
     new_password: str
 
 
-class MessageSchema(BaseModel):
-    subject: str
-    recipients: List[str]
-    body: dict
-
-
-class MessageResponse(BaseModel):
-    message_id: str
-    subject: str
-    recipients: List[str]
-    body: dict
-
-
 class PropertyLocationDetails(BaseModel):
     street_address: str
     area: str
