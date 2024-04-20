@@ -100,3 +100,12 @@ class Property(BaseModel):
     phone_number: str
     property_location_details: PropertyLocationDetails
     property_features: PropertyFeatures
+
+
+class Message(BaseModel):
+    message: str
+
+
+class NewPassword(BaseModel):
+    token: str
+    new_password: str

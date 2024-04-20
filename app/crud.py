@@ -1,8 +1,9 @@
+from app.utils import verify_password
+from sqlmodel import Session, select
 from typing import List
 from app.database import user_collection, property_collection, wishlist_collection
 from app.models import UserResponse, User
 from bson import ObjectId  # type: ignore
-
 
 
 # Asynchronously retrieves a user from the database using their email address
@@ -14,6 +15,15 @@ async def get_user(email: str):
         user["_id"] = str(user["_id"])  # Convert ObjectId to string
         user["id"] = user.pop("_id")  # Rename _id to id
     return user
+
+
+def authenticate(* email: str, password: str) -> User | None:
+    db_user = get_user(email=email)
+    if not db_user:
+        return None
+    if not verify_password(password, db_user.password):
+        return None
+    return db_user
 
 
 # Asynchronously registers a new user in the database
@@ -89,7 +99,6 @@ async def add_to_wishlist(user_id: str, property_id: str):
     # return user
 
 
-
 # Asynchronously removes an item from a user's wishlist
 async def remove_from_wishlist(user_id: str, property_id: str):
     # Convert user_id
@@ -134,5 +143,7 @@ async def delete_property(property_id: str) -> dict:
     return {"message": "Property deleted"}
 
 
-
-
+# def get_user_by_email(*, session: Session, email: str) -> User | None:
+#     statement = select(User).where(User.email == email)
+#     session_user = session.exec(statement).first()
+#     return session_user

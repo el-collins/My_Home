@@ -23,7 +23,7 @@ class Settings(BaseSettings):
         env_file=".env", env_ignore_empty=True, extra="ignore"
     )
     PROJECT_NAME: str = "myHome"
-    FRONTEND_URL: AnyUrl = "http://localhost:8000/api/v1/"
+    FRONTEND_URL: AnyUrl = "http://localhost:8001/api/v1/"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # 60 minutes * 24 hours * 8 days = 8 days
@@ -41,19 +41,12 @@ class Settings(BaseSettings):
     EMAILS_FROM_NAME: str = "myHome"
     EMAILS_FROM_EMAIL: str = ""
 
-    # SMTP_TLS: bool = True
-    # SMTP_SSL: bool = False
-    # SMTP_PORT: int = 2525
-    # SMTP_HOST: str = "sandbox.smtp.mailtrap.io"
-    # SMTP_USER: str = "6f67eefc2d4b2a"
-    # SMTP_PASSWORD: str = "ff7aed1c675a39"
-
-    app.config['MAIL_SERVER'] = 'sandbox.smtp.mailtrap.io'
-    app.config['MAIL_PORT'] = 2525
-    app.config['MAIL_USERNAME'] = '8194b3b06d50b2'
-    app.config['MAIL_PASSWORD'] = 'def1e61ddd646c'
-    app.config['MAIL_USE_TLS'] = True
-    app.config['MAIL_USE_SSL'] = False
+    SMTP_TLS: bool = True
+    SMTP_SSL: bool = False
+    SMTP_PORT: int = 2525
+    SMTP_HOST: str = "sandbox.smtp.mailtrap.io"
+    SMTP_USER: str = "8194b3b06d50b2"
+    SMTP_PASSWORD: str = "def1e61ddd646c"
 
 
 settings = Settings()  # type: ignore
