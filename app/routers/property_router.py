@@ -1,7 +1,8 @@
+from http.client import HTTPException
 from app.models import Property, PropertyFeatures, PropertyLocationDetails
 from fastapi import APIRouter, Depends, UploadFile, File, Form  # type: ignore
 from typing import List
-from app.database import property_collection2
+from app.database import property_collection
 from app.dependencies import get_current_user
 from botocore.client import Config
 import boto3  # type: ignore
@@ -77,9 +78,9 @@ async def create_properties(
     property_dict = property.dict()
     property_dict["images"] = image_keys
     property_dict["owner_id"] = str(current_user["id"])
-    result = await property_collection2.insert_one(property_dict)
+    result = await property_collection.insert_one(property_dict)
     property_id = str(result.inserted_id)
-    await property_collection2.update_one(
+    await property_collection.update_one(
         {"_id": result.inserted_id}, {"$set": {"id": property_id}}
     )
     return {"id": property_id}
@@ -88,7 +89,7 @@ async def create_properties(
 @router.get("/properties/")
 async def get_properties():
     properties = []
-    async for property in property_collection2.find():
+    async for property in property_collection.find():
         property["_id"] = str(property["_id"])  # Convert ObjectId to string
         property["images"] = [get_image_url(key) for key in property["images"]]
         properties.append(property)
@@ -100,3 +101,17 @@ def get_image_url(key: str):
         "get_object", Params={"Bucket": BUCKET_NAME, "Key": key}, ExpiresIn=3600
     )
     return url
+
+
+@router.get("/users/me/properties")
+async def get_user_properties(current_user=Depends(get_current_user)):
+    user_id = str(current_user["id"])
+
+    properties = []
+    async for property in property_collection.find({"owner_id": user_id}):
+        property["_id"] = str(property["_id"])  # Convert ObjectId to string
+        property["images"] = [get_image_url(key) for key in property["images"]]
+        properties.append(property)
+    if not properties:
+        raise HTTPException(status_code=404, detail="No properties found for this user")
+    return properties
