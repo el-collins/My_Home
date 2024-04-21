@@ -1,8 +1,9 @@
-from typing import Any
+from typing import Any, Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 import requests
 from app.settings import settings
 from app.models import User, UserResgister, UserResponse
+from fastapi.responses import JSONResponse
 from app.crud import (
     add_to_wishlist,
     get_all_users,
@@ -13,6 +14,23 @@ from app.crud import (
 )
 from passlib.context import CryptContext  # type: ignore
 from app.dependencies import get_current_user
+from fastapi.security import OAuth2PasswordRequestForm
+from app.database import get_db_client, user_collection
+from bson import ObjectId
+
+from app.auth_handler import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
+    authenticate_user,
+    create_access_token
+)
+from app.utils import (
+    get_password_hash,
+    create_token,
+    verify_token,
+    generate_reset_password_email,
+    generate_verification_email,
+    send_email,
+)
 
 router = APIRouter(prefix="/api", tags=["users"])
 
@@ -35,20 +53,58 @@ async def create_user(user: User):
         # Hash the user's password using bcrypt
         hashed_password = pwd_context.hash(user.password)
 
+        # generate token
+        email_verification_token = create_token(subject=user.email, type_ops="verify")  # noqa
+
         # Prepare user data for registration
         user_data = user.model_dump()
         user_data["password"] = hashed_password
         user_data["phone_number"] = user_data["phone_number"].split(":")[1]
         user_data["wishlist"] = []
+        user_data["is_active"] = False
         # Register the new user
         # new_user =
         await register_user(user_data)
+
+        # send email verification to user
+        email_data = generate_verification_email(
+            email_to=user.email, email=user.email, token=email_verification_token
+        )
+
+        send_email(
+            email_to=user.email,
+            subject=email_data.subject,
+            html_content=email_data.html_content,
+        )
 
         # return new_user
         # Return a success message
         return {"message": "User registered successfully"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/verify-email/{token}")
+async def verify_email(token: str, db: Annotated[OAuth2PasswordRequestForm, Depends(get_db_client)]):
+    # verify token
+    email = verify_token(token=token)
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid token")
+
+    user = await get_user(email=email)
+
+    if not user:
+        raise HTTPException(
+            status_code=500,
+            detail="The user with this email does not exist in the system.",
+        )
+
+    # Access the ObjectId value properly
+    user_id = ObjectId(user["id"])
+    await user_collection.update_one({"_id": user_id}, {"$set": {"is_active": True}})
+
+    return JSONResponse(status_code=201, content={"message": "Email verified"})
 
 
 # GET / endpoint to retrieve all users
@@ -147,7 +203,6 @@ async def add_listing_to_wishlist(
     await add_to_wishlist(str(current_user["id"]), property_id)
 
     return {"message": "Property added to wishlist"}
-
 
 
 @router.delete("/user/wishlist/", status_code=status.HTTP_200_OK)

@@ -10,9 +10,9 @@ from app.auth_handler import (
 
 from fastapi.responses import JSONResponse
 from sqlmodel import Session, select
-from app.database import get_db_client
+from app.database import get_db_client, user_collection
 from app.dependencies import get_current_user
-from app.models import Message, NewPassword  # noqa
+from app.models import Message, NewPassword, User  # noqa
 from fastapi.security import OAuth2PasswordRequestForm
 from app.utils import (
     get_password_hash,
@@ -57,8 +57,6 @@ async def login_user_route(form_data: Annotated[OAuth2PasswordRequestForm, Depen
 async def recover_password(email: str, db: Annotated[Session, Depends(get_db_client)]):
     "Forgot password flow"
     user = await get_user(email=email)
-    # print(user)
-    # return user
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -69,7 +67,6 @@ async def recover_password(email: str, db: Annotated[Session, Depends(get_db_cli
     email_data = generate_reset_password_email(
         email_to=user["email"], email=email, token=password_reset_token
     )
-    print(email_data)
     send_email(
         email_to=user["email"],
         subject=email_data.subject,
@@ -97,10 +94,11 @@ async def reset_password(
             status_code=404,
             detail="The user with this email does not exist in the system.",
         )
-    elif not user.get("is_active"):
+    print(user, "testing")
+    if not user.get("is_active"):
         raise HTTPException(status_code=400, detail="Inactive user")
     hashed_password = get_password_hash(password=body.new_password)
-    user.password = hashed_password
-    db.add(user)
-    db.commit()
+
+    await user_collection.update_one({"email": email}, {"$set": {"password": hashed_password}})
+
     return Message(message="Password updated successfully")

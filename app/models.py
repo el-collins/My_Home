@@ -31,6 +31,8 @@ class User(BaseModel):
 
 class UserResgister(User):
     wishlist: List[str] = []
+    is_active: bool = Field(
+        default=False, description="Is the user active", title="Is Active")
 
 
 class UserResponse(User):
