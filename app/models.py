@@ -1,15 +1,14 @@
 from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator  # type: ignore
 from typing import List, Annotated
-from pydantic_extra_types.phone_numbers import PhoneNumber # type: ignore
-
+from pydantic_extra_types.phone_numbers import PhoneNumber  # type: ignore
 
 
 class User(BaseModel):
     name: str
     email: EmailStr = Field(..., min_length=6)
     password: Annotated[str, StringConstraints(min_length=8)]
-    phone_number: PhoneNumber =Field(description="user phone number", title="phone number")
-    
+    phone_number: PhoneNumber = Field(
+        description="user phone number", title="phone number")
 
     @validator("password")
     # Custom validator for password complexity requirements
@@ -29,8 +28,12 @@ class User(BaseModel):
         # Hash the password using passlib
         return value
 
+
 class UserResgister(User):
     wishlist: List[str] = []
+    is_active: bool = Field(
+        default=False, description="Is the user active", title="Is Active")
+
 
 class UserResponse(User):
     id: str
@@ -53,9 +56,6 @@ class UserLogin(BaseModel):
     password: str
 
 
-
-
-
 class Wishlist(BaseModel):
     user_id: str
     property_id: str
@@ -72,35 +72,28 @@ class Reviews(BaseModel):
 class ReviewResponse(Reviews):
     id: str
 
+
 class ForgetPasswordRequest(BaseModel):
     email: EmailStr
+
 
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
     new_password: str
 
-class MessageSchema(BaseModel):
-    subject: str
-    recipients: List[str]
-    body: dict
-
-
-class MessageResponse(BaseModel):
-    message_id: str
-    subject: str
-    recipients: List[str]
-    body: dict
 
 class PropertyLocationDetails(BaseModel):
     street_address: str
     area: str
     state: str
 
+
 class PropertyFeatures(BaseModel):
     number_of_rooms: int
     number_of_toilets: int
     running_water: bool
     POP_available: bool
+
 
 class Property(BaseModel):
     name: str
@@ -111,3 +104,10 @@ class Property(BaseModel):
     property_features: PropertyFeatures
 
 
+class Message(BaseModel):
+    message: str
+
+
+class NewPassword(BaseModel):
+    token: str
+    new_password: str
