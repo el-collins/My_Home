@@ -15,9 +15,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
-          script: |
-            cd /home/myhome/codes/My_Home
             git pull
             poetry install --no-interaction --no-ansi  
-            poetry shell  # Activate the virtual environment
+            poetry shell 
             poetry run pm2 restart backend
