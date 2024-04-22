@@ -20,4 +20,4 @@ jobs:
             git pull
             poetry install --no-interaction --no-ansi  
             poetry shell
-            pm2 restart backend
+            poetry run pm2 restart backend
