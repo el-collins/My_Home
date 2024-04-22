@@ -18,6 +18,5 @@ jobs:
           script: |
             cd /home/myhome/codes/My_Home
             git pull
-            source $HOME/.poetry/env  # Activate Poetry environment variables
-            poetry install --no-interaction --no-ansi  # Install dependencies
+            poetry run poetry install --no-interaction --no-ansi  
             pm2 restart backend
