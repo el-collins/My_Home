@@ -19,7 +19,5 @@ jobs:
             cd /home/myhome/codes/My_Home
             git pull
             poetry install --no-interaction --no-ansi  
-            poetry config virtualenvs.in-project true
-            poetry shell
-            .venv\Scripts\activate
+            .venv/bin/activate
             poetry run pm2 restart backend
