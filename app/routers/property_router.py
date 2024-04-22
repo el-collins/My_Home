@@ -8,7 +8,7 @@ from botocore.client import Config
 import boto3  # type: ignore
 from bson import ObjectId
 
-router = APIRouter()
+router = APIRouter(tags=["properties"])
 
 
 
