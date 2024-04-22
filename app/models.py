@@ -119,8 +119,8 @@ class NewPassword(BaseModel):
 # Define an Enum for the available plans
 class PlanName(str, Enum):
     basic = "basic"
+    standard = "standard"
     premium = "premium"
-    pro = "pro"
 
 # Define a model for the pricing plans
 
@@ -132,7 +132,7 @@ class PricingPlan(BaseModel):
 
 # Dummy pricing plans database
 pricing_plans_db: Dict[PlanName, float] = {
-    PlanName.basic: 0.0,
-    PlanName.premium: 9.99,
-    PlanName.pro: 19.99
+    PlanName.basic: 0,
+    PlanName.standard: 9999.99,
+    PlanName.premium: 19999.99
 }
