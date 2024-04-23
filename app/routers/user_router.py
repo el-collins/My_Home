@@ -27,6 +27,8 @@ from app.utils import (
 from fastapi import File, UploadFile
 import boto3  # type: ignore
 from botocore.client import Config
+from fastapi import Response
+from botocore.exceptions import NoCredentialsError
 
 
 
@@ -176,3 +178,27 @@ async def upload_profile_picture(
         {"_id": ObjectId(current_user["id"])}, {"$set": {"profile_picture": image_key}}
     )
     return {"message": "Profile picture uploaded"}
+
+
+
+
+@router.get("/user/profile-picture")
+async def get_profile_picture(current_user=Depends(get_current_user)):
+    # Get the user document from MongoDB
+    user = await user_collection.find_one({"_id": ObjectId(current_user["id"])})
+
+    # Check if the user has a profile picture
+    if "profile_picture" not in user:
+        return {"message": "No profile picture found"}
+
+    # Get the image key
+    image_key = user["profile_picture"]
+
+    # Get the image from S3
+    try:
+        file_obj = s3.get_object(Bucket=settings.BUCKET_NAME, Key=image_key)
+    except NoCredentialsError:
+        return {"message": "Missing S3 credentials"}
+
+    # Return the image as a response
+    return Response(file_obj["Body"].read(), media_type="image/jpeg")
