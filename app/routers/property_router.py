@@ -7,21 +7,20 @@ from app.dependencies import get_current_user
 from botocore.client import Config
 import boto3  # type: ignore
 from bson import ObjectId
+from app.settings import settings
 
 router = APIRouter(tags=["properties"])
 
 
 
-ACCESS_KEY = "AKIA47CRU4UEBPPE6H76"
-SECRET_KEY = "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"
-BUCKET_NAME = "myhome1"
+
 
 
 s3 = boto3.client(
     "s3",
     region_name="eu-north-1",
-    aws_access_key_id=ACCESS_KEY,
-    aws_secret_access_key=SECRET_KEY,
+    aws_access_key_id=settings.S3_ACCESS_KEY,
+    aws_secret_access_key=settings.S3_SECRET_KEY,
     config=Config(signature_version="s3v4"),
 )
 
@@ -85,8 +84,8 @@ async def create_properties(
     # Save images to S3 and get their keys
     image_keys = []
     for image in images:
-        image_key = f"{str(current_user['id'])}/{property_id}/{image.filename}"
-        s3.upload_fileobj(image.file, BUCKET_NAME, image_key)
+        image_key = f"properties images/{str(current_user['id'])}/{property_id}/{image.filename}"
+        s3.upload_fileobj(image.file, settings.BUCKET_NAME, image_key)
         image_keys.append(image_key)
 
     # Update the property document in MongoDB with the image keys
@@ -110,7 +109,7 @@ async def get_properties():
 
 def get_image_url(key: str):
     url = s3.generate_presigned_url(
-        "get_object", Params={"Bucket": BUCKET_NAME, "Key": key}, ExpiresIn=3600
+        "get_object", Params={"Bucket": settings.BUCKET_NAME, "Key": key}, ExpiresIn=3600
     )
     return url
 
@@ -143,7 +142,7 @@ async def delete_property(property_id: str, current_user=Depends(get_current_use
 
     # Delete images from S3 bucket
     for image_key in property["images"]:
-        s3.delete_object(Bucket=BUCKET_NAME, Key=image_key)
+        s3.delete_object(Bucket=settings.BUCKET_NAME, Key=image_key)
     # Delete property from MongoDB
 
     await property_collection.delete_one({"id": property_id, "owner_id": user_id})
@@ -208,8 +207,8 @@ async def update_property(
     if images and len(images) > 0:  # Change this line
         image_keys = []
         for image in images:
-            image_key = f"{str(current_user['id'])}/{property_id}/{image.filename}"
-            s3.upload_fileobj(image.file, BUCKET_NAME, image_key)
+            image_key = f"properties images/{str(current_user['id'])}/{property_id}/{image.filename}"
+            s3.upload_fileobj(image.file, settings.BUCKET_NAME, image_key)
             image_keys.append(image_key)
         property_dict["images"] = image_keys
 
