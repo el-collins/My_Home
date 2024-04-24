@@ -1,0 +1,62 @@
+Disadvantages of REST web services:
+Lack of built-in security: REST does not provide built-in support for security mechanisms like authentication and authorization.
+Overhead in mobile applications: RESTful APIs often require multiple requests to fetch related resources, which can lead to increased latency and bandwidth consumption in mobile applications.
+Limited support for complex operations: RESTful APIs are primarily designed for CRUD (Create, Read, Update, Delete) operations and may not be suitable for complex transactions or operations.
+Clustered indexes: Clustered indexes in a database organize the physical order of data rows on disk based on the indexed column(s). Each table can have only one clustered index, and the data rows are stored in the order of the clustered index key values.
+Non-clustered indexes: Non-clustered indexes also store index key values, but they do not affect the physical order of data rows on disk. Instead, they contain pointers to the corresponding data rows. A table can have multiple non-clustered indexes.
+Difference between non-clustered and clustered indexes:
+Clustered indexes physically reorder the data rows on disk, while non-clustered indexes do not.
+In clustered indexes, the leaf nodes of the index contain the actual data rows, while in non-clustered indexes, they contain pointers to the data rows.
+Each table can have only one clustered index, but multiple non-clustered indexes.
+Continuous integration (CI): Continuous integration is a software development practice where developers integrate code changes into a shared repository frequently, preferably several times a day. Each integration triggers automated build and test processes to detect integration errors early.
+Continuous delivery (CD): Continuous delivery extends continuous integration by automating the deployment process, allowing software to be released to production quickly, safely, and reliably at any time. With continuous delivery, every code change that passes through the CI pipeline is potentially deployable to production.
+Continuous deployment: Continuous deployment is the practice of automatically deploying every code change that passes through the CI/CD pipeline to production without manual intervention. It enables rapid and frequent releases of new features and updates to end-users.
+Monolithic architecture: Monolithic architecture is a traditional software design approach where all components of an application are tightly integrated into a single codebase and deployed as a single unit. In monolithic architecture, different functionalities of the application are not separated into distinct services.
+Service-oriented architecture (SOA): Service-oriented architecture is a design approach where software components are organized into services that communicate with each other over a network. Each service represents a discrete unit of functionality and can be independently developed, deployed, and scaled.
+Microservice architecture: Microservice architecture is a design pattern where an application is composed of small, loosely coupled services, each responsible for a specific business function. Microservices communicate via lightweight protocols like HTTP or messaging queues and can be independently deployed and scaled.
+API Gateway pattern: The API Gateway pattern is a design pattern used in microservice architectures where a single entry point, called the API Gateway, handles all client requests. The API Gateway provides various functionalities such as authentication, authorization, request routing, load balancing, and protocol translation, simplifying client access to the underlying microservices.
+SSL: SSL (Secure Sockets Layer) is a cryptographic protocol used to secure communication over a computer network. It provides encryption, data integrity, and authentication to ensure that data transmitted between clients and servers remains private and tamper-proof.
+How SSL works: SSL works by establishing a secure connection between a client and a server through a process called the SSL handshake. During the handshake, the client and server agree on encryption algorithms, exchange cryptographic keys, and verify each other's identities using digital certificates. Once the secure connection is established, data exchanged between the client and server is encrypted and protected from eavesdropping and tampering.
+B-tree indexes: B-tree indexes are data structures commonly used in databases to organize and efficiently search for data. They are balanced tree structures where each node contains multiple keys and pointers to child nodes. B-tree indexes enable fast retrieval of data by reducing the number of disk I/O operations required to locate records.
+Distributed transactions: Distributed transactions involve multiple operations performed on different resources across a network, where all operations must either succeed or fail together as a single unit of work. Ensuring the atomicity, consistency, isolation, and durability (ACID properties) of distributed transactions can be challenging due to issues such as network failures, concurrency, and resource contention. Distributed transaction management systems, like two-phase commit protocols, help coordinate and ensure the consistency of distributed transactions.
+
+User
+Explain what a God class is.
+
+Explain what spike testing refers to.
+
+Can you explain what the base property of systems is?
+
+Explain what faking refers to in backend development.
+
+Explain what mocking refers to in backend development.
+
+Explain what stubbing refers to in backend development.
+
+Explain why application layering is crucial.
+
+Explain what “stack” is in backend development.
+
+Explain what “heap” is in backend development.
+
+Explain what stack overflow refers to.
+
+Explain what cohesion refers to.
+
+ChatGPT
+Sure, here are explanations for those terms:
+
+God class: A God class, also known as a monster class or blob, is an anti-pattern in software development where a single class becomes overly large, complex, and responsible for too many tasks within a system. God classes often violate the Single Responsibility Principle (SRP) and are difficult to maintain, test, and extend. They tend to accumulate various functionalities and become a central point of dependency, making the codebase rigid and hard to refactor.
+Spike testing: Spike testing is a type of performance testing where a system is subjected to a sudden and significant increase in workload or traffic to evaluate its behavior under stress. Spike testing helps identify performance bottlenecks, scalability issues, and the system's ability to handle sudden surges in traffic or load.
+Base property of systems: The base property of systems refers to the principle that every complex system is built upon a foundation of simpler components or primitives. These components form the basis of the system's architecture and functionality, providing essential services and functionalities that higher-level components rely on. The base property emphasizes the importance of understanding and optimizing the foundational elements of a system to ensure its stability, reliability, and scalability.
+Faking in backend development: Faking, also known as stubbing or mocking, is a technique used in backend development to simulate the behavior of external dependencies or components during testing. By creating fake implementations of external services or dependencies, developers can isolate the code being tested and control its interactions with external systems. Faking allows for more efficient and deterministic testing, as it eliminates the need to rely on real external services, databases, or APIs during testing.
+Mocking in backend development: Mocking is the process of creating simulated objects, often called mocks, that mimic the behavior of real objects or components in a system. Mocking is commonly used in unit testing to isolate the code under test and verify its interactions with other components or dependencies. Mock objects are programmed to respond to specific method calls or inputs in predefined ways, allowing developers to simulate various scenarios and test edge cases without relying on the actual implementation of external dependencies.
+Stubbing in backend development: Stubbing is similar to mocking and involves creating lightweight implementations of external dependencies or services for testing purposes. Unlike mocks, stubs do not verify interactions or behavior but simply provide predetermined responses to method calls or inputs. Stubs are often used when the interactions with external dependencies are not the focus of the test, and developers only need to simulate basic functionality to proceed with testing.
+Application layering: Application layering is a design principle in software architecture that involves organizing the components of an application into distinct layers, each responsible for a specific set of functionalities or concerns. Common layers in a layered architecture include presentation, business logic, and data access. Application layering promotes modularity, separation of concerns, and maintainability by enforcing clear boundaries between different parts of the system.
+Stack in backend development: In backend development, the stack refers to a region of memory used for storing local variables, function parameters, and function call information during program execution. The stack operates on a last-in, first-out (LIFO) basis, with data pushed onto the stack when a function is called and popped off the stack when the function returns.
+Heap in backend development: The heap is another region of memory used for dynamic memory allocation during program execution. Unlike the stack, which has a fixed size and a predictable structure, the heap is more flexible and can grow and shrink as needed. Data allocated on the heap persists beyond the scope of individual functions and can be accessed from anywhere in the program.
+Stack overflow: Stack overflow refers to a runtime error that occurs when the stack memory is exhausted due to excessive recursion or a deep chain of function calls. When the stack becomes full, further function calls cannot be accommodated, resulting in a stack overflow error. Stack overflow errors can lead to program crashes or unexpected behavior and are typically caused by programming mistakes such as infinite recursion or excessively deep call stacks.
+Cohesion: Cohesion refers to the degree to which the elements within a module or component are related and work together to achieve a common purpose. High cohesion indicates that the elements within a module are closely related and focused on a single task or responsibility, while low cohesion suggests that the elements are loosely related and may perform multiple unrelated tasks. Cohesion is an important design principle in software development, as it promotes modularity, maintainability, and reusability by organizing code into cohesive and logically coherent units.
+
+
+

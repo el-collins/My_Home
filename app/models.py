@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator  #
 from typing import List, Annotated
 from pydantic_extra_types.phone_numbers import PhoneNumber  # type: ignore
 from enum import Enum
-from typing import Dict
+from typing import Dict, Optional
 
 
 class User(BaseModel):
@@ -128,6 +128,9 @@ class PlanName(str, Enum):
 class PricingPlan(BaseModel):
     name: PlanName
     price: float
+    user_id: Optional[str] = None
+    min_houses: Optional[int] = None
+    max_houses: Optional[int] = None
 
 
 # Dummy pricing plans database
