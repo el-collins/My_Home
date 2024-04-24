@@ -23,9 +23,6 @@ property_database = get_db_client().Properties  # Get the Properties database
 # Get the properties collection from the Properties database
 property_collection = property_database.properties
 
-property_database2 = get_db_client().Properties2  # Get the Properties database
-# Get the properties collection from the Properties database
-property_collection2 = property_database2.properties2
 
 review_database = get_db_client().Review
 review_collection = review_database.reviews

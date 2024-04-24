@@ -1,8 +1,9 @@
-from typing import Any, Annotated
+from typing import Any, Annotated, Optional
+
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
-import requests
 from app.settings import settings
-from app.models import User, UserResgister, UserResponse
+from app.models import User
 from fastapi.responses import JSONResponse
 from app.crud import (
     add_to_wishlist,
@@ -18,24 +19,36 @@ from fastapi.security import OAuth2PasswordRequestForm
 from app.database import get_db_client, user_collection
 from bson import ObjectId
 
-from app.auth_handler import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    authenticate_user,
-    create_access_token
-)
+
 from app.utils import (
-    get_password_hash,
     create_token,
     verify_token,
-    generate_reset_password_email,
     generate_verification_email,
     send_email,
 )
+from fastapi import File, UploadFile
+import boto3  # type: ignore
+from botocore.client import Config
+from fastapi import Response
+from botocore.exceptions import NoCredentialsError
+
+
 
 router = APIRouter(prefix="/api", tags=["users"])
 
 # Initialize Passlib's CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+
+
+s3 = boto3.client(
+    "s3",
+    region_name="eu-north-1",
+    aws_access_key_id=settings.S3_ACCESS_KEY,
+    aws_secret_access_key=settings.S3_SECRET_KEY,
+    config=Config(signature_version="s3v4"),
+)
 
 
 # POST /signup endpoint to create a new user
@@ -61,9 +74,9 @@ async def create_user(user: User):
         user_data["password"] = hashed_password
         user_data["phone_number"] = user_data["phone_number"].split(":")[1]
         user_data["wishlist"] = []
-        user_data["is_active"] = False
-        # Register the new user
-        # new_user =
+        # user profile picture
+        user_data["profile_picture"] = ""
+
         await register_user(user_data)
 
         # send email verification to user
@@ -131,69 +144,7 @@ async def get_user_by_id_route(user_id: Any):
     return user
 
 
-# Google OAuth2 Endpoints
-@router.get("/login/google")
-async def login_google():
-    return {
-        "url": f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={settings.GOOGLE_CLIENT_ID}&redirect_uri={settings.GOOGLE_REDIRECT_URI}&scope=openid%20profile%20email&access_type=offline"
-    }
 
-
-# @router.get("/auth/google")
-# async def auth_google(code: str):
-#     token_url = "https://accounts.google.com/o/oauth2/token"
-#     data = {
-#         "code": code,
-#         "client_id": settings.GOOGLE_CLIENT_ID,
-#         "client_secret": settings.GOOGLE_CLIENT_SECRET,
-#         "redirect_uri": settings.GOOGLE_REDIRECT_URI,
-#         "grant_type": "authorization_code",
-#     }
-#     response = requests.post(token_url, data=data)
-#     if response.status_code != 200:
-#         raise HTTPException(status_code=400, detail="Invalid Google authentication code")
-#     access_token = response.json().get("access_token")
-#     user_info = requests.get("https://www.googleapis.com/oauth2/v1/userinfo", headers={"Authorization": f"Bearer {access_token}"})
-#     if user_info.status_code != 200:
-#         raise HTTPException(status_code=400, detail="Could not retrieve user information")
-#     return user_info.json()
-
-
-@router.get("/auth/google")
-async def auth_google(code: str):
-    token_url = "https://accounts.google.com/o/oauth2/token"
-    data = {
-        "code": code,
-        "client_id": settings.GOOGLE_CLIENT_ID,
-        "client_secret": settings.GOOGLE_CLIENT_SECRET,
-        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
-        "grant_type": "authorization_code",
-    }
-    response = requests.post(token_url, data=data)
-    if response.status_code != 200:
-        raise HTTPException(
-            status_code=400, detail="Invalid Google authentication code"
-        )
-    access_token = response.json().get("access_token")
-    user_info_response = requests.get(
-        "https://www.googleapis.com/oauth2/v1/userinfo",
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
-    if user_info_response.status_code != 200:
-        raise HTTPException(
-            status_code=400, detail="Could not retrieve user information"
-        )
-
-    user_info = user_info_response.json()
-    # Check if user already exists in the database
-    existing_user = await get_user(user_info["email"])
-    if not existing_user:
-        # Create a new user in the database
-        new_user = await register_user(user_info)
-        return new_user
-    else:
-        # Return existing user
-        return existing_user
 
 
 @router.post("/user/wishlist/", status_code=status.HTTP_201_CREATED)
@@ -212,3 +163,97 @@ async def remove_listing_from_wishlist(
     await remove_from_wishlist(str(current_user["id"]), property_id)
 
     return {"message": "Property removed from wishlist"}
+
+
+
+
+@router.post("/user/profile-picture")
+async def upload_profile_picture(
+    profile_picture: UploadFile = File(...), current_user=Depends(get_current_user)
+):
+    # Save the profile picture to S3 and get its key
+    image_key = f"profile images/{str(current_user['id'])}/{profile_picture.filename}"
+    s3.upload_fileobj(profile_picture.file, settings.BUCKET_NAME, image_key)
+
+    # Update the user document in MongoDB with the image key
+    await user_collection.update_one(
+        {"_id": ObjectId(current_user["id"])}, {"$set": {"profile_picture": image_key}}
+    )
+    return {"message": "Profile picture uploaded"}
+
+
+
+
+@router.get("/user/profile-picture")
+async def get_profile_picture(current_user=Depends(get_current_user)):
+    # Get the user document from MongoDB
+    user = await user_collection.find_one({"_id": ObjectId(current_user["id"])})
+
+ # Check if the user has a profile picture
+    if "profile_picture" not in user or not user["profile_picture"]:
+        return {"message": "No profile picture found"}
+
+
+    # Get the image key
+    image_key = user["profile_picture"]
+
+    # Get the image from S3
+    try:
+        file_obj = s3.get_object(Bucket=settings.BUCKET_NAME, Key=image_key)
+    except NoCredentialsError:
+        return {"message": "Missing S3 credentials"}
+
+    # Return the image as a response
+    return Response(file_obj["Body"].read(), media_type="image/jpeg")
+
+
+
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    phone_number: Optional[str] = None
+
+@router.put("/user")
+async def update_account(user_update: UserUpdate, current_user=Depends(get_current_user)):
+    # Create the update document
+    update_doc = user_update.dict(exclude_unset=True)
+
+    # Update the user document in MongoDB
+    result = await user_collection.update_one({"_id": ObjectId(current_user["id"])}, {"$set": update_doc})
+
+    # Check if a document was updated
+    if result.modified_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    return {"message": "Account updated"}
+
+
+
+
+
+
+
+@router.delete("/user")
+async def delete_account(current_user=Depends(get_current_user)):
+    # Get the user document from MongoDB
+    user = await user_collection.find_one({"_id": ObjectId(current_user["id"])})
+
+    # Check if the user has a profile picture
+    if "profile_picture" in user:
+        # Get the image key
+        image_key = user["profile_picture"]
+
+        # Delete the image from S3
+        try:
+            s3.delete_object(Bucket=settings.BUCKET_NAME, Key=image_key)
+        except NoCredentialsError:
+            return {"message": "Missing S3 credentials"}
+
+    # Delete the user document from MongoDB
+    result = await user_collection.delete_one({"_id": ObjectId(current_user["id"])})
+
+    # Check if a document was deleted
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    return {"message": "Account and profile picture deleted"}

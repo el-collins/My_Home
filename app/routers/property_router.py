@@ -1,25 +1,23 @@
-from app.models import Property, PropertyFeatures, PropertyLocationDetails, PlanName
+from pydantic import BaseModel
+from app.models import Property, PropertyFeatures, PropertyLocationDetails
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException  # type: ignore
-from typing import List
-from app.database import property_collection2
-from app.dependencies import get_current_user, get_user_houses_count, get_db_client, get_user_plan
+from typing import List, Optional
+from app.database import property_collection
+from app.dependencies import get_current_user
+
 from botocore.client import Config
 import boto3  # type: ignore
+from bson import ObjectId
+from app.settings import settings
 
-
-router = APIRouter()
-
-
-ACCESS_KEY = "AKIA47CRU4UEBPPE6H76"
-SECRET_KEY = "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"
-BUCKET_NAME = "myhome1"
+router = APIRouter(tags=["properties"])
 
 
 s3 = boto3.client(
     "s3",
     region_name="eu-north-1",
-    aws_access_key_id=ACCESS_KEY,
-    aws_secret_access_key=SECRET_KEY,
+    aws_access_key_id=settings.S3_ACCESS_KEY,
+    aws_secret_access_key=settings.S3_SECRET_KEY,
     config=Config(signature_version="s3v4"),
 )
 
