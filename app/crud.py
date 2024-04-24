@@ -1,7 +1,6 @@
 from app.utils import verify_password
-from sqlmodel import Session, select
 from typing import List
-from app.database import user_collection, property_collection, wishlist_collection
+from app.database import user_collection, wishlist_collection
 from app.models import UserResponse, User
 from bson import ObjectId  # type: ignore
 
@@ -75,13 +74,6 @@ async def get_user_wishlist(user_id: str):
     return wishlist_items
 
 
-# Asynchronously adds an item to a user's wishlist
-# async def add_to_wishlist(wishlist_data):
-#     # Inserts the wishlist item into the database
-#     await wishlist_collection.insert_one(dict(wishlist_data))
-#     # Creates a JSON-serializable response object
-#     response = {**dict(wishlist_data)}
-#     return response
 
 
 async def add_to_wishlist(user_id: str, property_id: str):
@@ -109,41 +101,3 @@ async def remove_from_wishlist(user_id: str, property_id: str):
         {"_id": user_id}, {"$pull": {"wishlist": property_id}}
     )
 
-# Asynchronously creates a new property in the database
-
-
-async def create_property(property_data):
-
-    result = await user_collection.insert_one(property_data.dict())
-    # Adds the database-generated ID to property data
-    property_data["_id"] = result.inserted_id
-    print(result)
-    return property_data
-
-
-# Asynchronously retrieves a property from the database using its ID
-
-
-async def get_property(property_id: str) -> dict:
-    property_data = await property_collection.find_one({"_id": property_id})
-    return property_data
-
-
-# Asynchronously updates a property in the database using its ID and updated data
-
-
-async def update_property(property_id: str, updated_data: dict) -> dict:
-    await property_collection.update_one({"_id": property_id}, {"$set": updated_data})
-    return await get_property(property_id)
-
-
-# Asynchronously deletes a property from the database using its ID
-async def delete_property(property_id: str) -> dict:
-    await property_collection.delete_one({"_id": property_id})
-    return {"message": "Property deleted"}
-
-
-# def get_user_by_email(*, session: Session, email: str) -> User | None:
-#     statement = select(User).where(User.email == email)
-#     session_user = session.exec(statement).first()
-#     return session_user
