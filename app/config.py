@@ -22,8 +22,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_ignore_empty=True, extra="ignore"
     )
-    PROJECT_NAME: str = "Homely"
-    FRONTEND_URL: AnyUrl = "http://homely.com.ng/"
+    PROJECT_NAME: str = "myHome"
+    FRONTEND_URL: AnyUrl = "http://localhost:8001/api/v1/"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # 60 minutes * 24 hours * 8 days = 8 days
@@ -38,15 +38,15 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     EMAIL_RESET_PASSWORD_EXPIRE_MINUTES: int = 10
     EMAIL_VERIFY_EMAIL_EXPIRE_MINUTES: int = 60 * 24 * 8
-    EMAILS_FROM_NAME: str = "Homely"
-    EMAILS_FROM_EMAIL: str = "support@homely.com.ng"
+    EMAILS_FROM_NAME: str = "myHome"
+    EMAILS_FROM_EMAIL: str = ""
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
-    SMTP_PORT: int = 465
-    SMTP_HOST: str = "smtp.zeptomail.com"
-    SMTP_USER: str = "emailapikey"
-    SMTP_PASSWORD: str = "wSsVR61+8kTyBq54yDL8J79ukF5VAF6nEE8pjFqi7SOpH/vA8sc8kEbLDQSjFKQcEDZvF2RA8LgtzBwGh2UPjNsqzF9SXCiF9mqRe1U4J3x17qnvhDzKWmhelheOLIwOxQVvnGNhFc0g+g=="
+    SMTP_PORT: int = 2525
+    SMTP_HOST: str = "sandbox.smtp.mailtrap.io"
+    SMTP_USER: str = "8194b3b06d50b2"
+    SMTP_PASSWORD: str = "def1e61ddd646c"
 
 
 settings = Settings()  # type: ignore
