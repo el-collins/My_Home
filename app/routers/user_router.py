@@ -1,4 +1,6 @@
-from typing import Any, Annotated
+from typing import Any, Annotated, Optional
+
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.settings import settings
 from app.models import User
@@ -187,9 +189,10 @@ async def get_profile_picture(current_user=Depends(get_current_user)):
     # Get the user document from MongoDB
     user = await user_collection.find_one({"_id": ObjectId(current_user["id"])})
 
-    # Check if the user has a profile picture
-    if "profile_picture" not in user:
+ # Check if the user has a profile picture
+    if "profile_picture" not in user or not user["profile_picture"]:
         return {"message": "No profile picture found"}
+
 
     # Get the image key
     image_key = user["profile_picture"]
@@ -202,3 +205,55 @@ async def get_profile_picture(current_user=Depends(get_current_user)):
 
     # Return the image as a response
     return Response(file_obj["Body"].read(), media_type="image/jpeg")
+
+
+
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    phone_number: Optional[str] = None
+
+@router.put("/user")
+async def update_account(user_update: UserUpdate, current_user=Depends(get_current_user)):
+    # Create the update document
+    update_doc = user_update.dict(exclude_unset=True)
+
+    # Update the user document in MongoDB
+    result = await user_collection.update_one({"_id": ObjectId(current_user["id"])}, {"$set": update_doc})
+
+    # Check if a document was updated
+    if result.modified_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    return {"message": "Account updated"}
+
+
+
+
+
+
+
+@router.delete("/user")
+async def delete_account(current_user=Depends(get_current_user)):
+    # Get the user document from MongoDB
+    user = await user_collection.find_one({"_id": ObjectId(current_user["id"])})
+
+    # Check if the user has a profile picture
+    if "profile_picture" in user:
+        # Get the image key
+        image_key = user["profile_picture"]
+
+        # Delete the image from S3
+        try:
+            s3.delete_object(Bucket=settings.BUCKET_NAME, Key=image_key)
+        except NoCredentialsError:
+            return {"message": "Missing S3 credentials"}
+
+    # Delete the user document from MongoDB
+    result = await user_collection.delete_one({"_id": ObjectId(current_user["id"])})
+
+    # Check if a document was deleted
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    return {"message": "Account and profile picture deleted"}
