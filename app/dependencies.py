@@ -1,9 +1,10 @@
+from fastapi import Depends, HTTPException
 from fastapi import Depends, HTTPException, status  # type: ignore
 from app.auth_handler import decode_token, oauth2_scheme
-from app.models import TokenData
+from app.models import TokenData, PlanName
+from app.crud import get_user
 from app.database import property_collection, get_db_client
 from motor.motor_asyncio import AsyncIOMotorCollection
-
 
 
 # Dependency function to retrieve the current user from the provided access token
@@ -44,7 +45,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         )
     # Return the user data
     return user
-
 
 
 # user_service.py
