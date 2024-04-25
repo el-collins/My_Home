@@ -3,7 +3,7 @@ from fastapi import Depends, HTTPException, status  # type: ignore
 from app.auth_handler import decode_token, oauth2_scheme
 from app.models import TokenData, PlanName
 from app.crud import get_user
-from app.database import property_collection2, get_db_client
+from app.database import property_collection, get_db_client
 from motor.motor_asyncio import AsyncIOMotorCollection
 
 
@@ -69,10 +69,10 @@ async def get_user_houses_count(owner_id: str) -> int:
     """
 
     db = get_db_client()
-    print(property_collection2)
+    print(property_collection)
 
     # Assuming you have a collection for properties in your database
-    property_collection = db.property_collection2
+    property_collection = db.property_collection
 
     try:
         count = await property_collection.count_documents({"owner_id": owner_id})

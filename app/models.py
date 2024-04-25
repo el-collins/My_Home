@@ -52,10 +52,8 @@ class TokenData(BaseModel):
 
 
 class UserLogin(BaseModel):
-    # The email of the user to log in
-    email: EmailStr
-    # The password of the user to log in
-    password: str
+    email: EmailStr  # The email of the user to log in
+    password: str  # The password of the user to log in
 
 
 class Wishlist(BaseModel):
@@ -63,16 +61,30 @@ class Wishlist(BaseModel):
     property_id: str
 
 
-class Reviews(BaseModel):
-    """
-    Container for a single review record.
-    """
-    username: str = Field(description="Name of the reviewer")
-    message: str = Field(min_length=5)
+class Review(BaseModel):
+    user_id: str
+    property_id: str
+    rating: float
+    comment: str
+
+    class Config:
+        orm_mode = True
 
 
-class ReviewResponse(Reviews):
+class ReviewCreate(BaseModel):
+    # property_id: str
+    rating: float
+    comment: str
+
+
+class ReviewResponse(Review):
     id: str
+
+
+class UserReviews(BaseModel):
+    user_id: str
+    property_id: str
+    reviews: List[ReviewResponse]
 
 
 class ForgetPasswordRequest(BaseModel):

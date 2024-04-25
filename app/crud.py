@@ -1,6 +1,6 @@
 from app.utils import verify_password
 from typing import List
-from app.database import user_collection, wishlist_collection
+from app.database import user_collection, wishlist_collection, review_collection
 from app.models import UserResponse, User
 from bson import ObjectId  # type: ignore
 
@@ -74,8 +74,6 @@ async def get_user_wishlist(user_id: str):
     return wishlist_items
 
 
-
-
 async def add_to_wishlist(user_id: str, property_id: str):
     # Convert user_id
     user_id = ObjectId(user_id)
@@ -101,3 +99,27 @@ async def remove_from_wishlist(user_id: str, property_id: str):
         {"_id": user_id}, {"$pull": {"wishlist": property_id}}
     )
 
+
+async def get_user_review(user_id: str):
+    """
+    Get all reviews items for the user.
+    """
+
+    # Finds all reviews associated with the user_id
+    review_list = []
+    async for review in review_collection.find({"user_id": user_id}):
+        review["_id"] = str(review["_id"])
+        # review["id"] = review.pop("_id")
+
+        review_list.append(review)
+    return review_list
+
+
+async def add_to_reviews(user_id: str, property_id: str):
+    # Convert user_id
+    user_id = ObjectId(user_id)
+
+    # Add property_id to the user's wishlist
+    await review_collection.update_one(
+        {"_id": user_id}, {"$push": {"review": property_id}}
+    )

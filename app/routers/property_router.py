@@ -1,23 +1,24 @@
-from pydantic import BaseModel
-from app.models import Property, PropertyFeatures, PropertyLocationDetails
+from app.models import Property, PropertyFeatures, PropertyLocationDetails, PlanName
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException  # type: ignore
 from typing import List, Optional
 from app.database import property_collection
-from app.dependencies import get_current_user
-
+from app.dependencies import get_current_user, get_user_houses_count, get_db_client, get_user_plan
 from botocore.client import Config
 import boto3  # type: ignore
-from bson import ObjectId
-from app.settings import settings
 
-router = APIRouter(tags=["properties"])
+router = APIRouter()
+
+
+ACCESS_KEY = "AKIA47CRU4UEBPPE6H76"
+SECRET_KEY = "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"
+BUCKET_NAME = "myhome1"
 
 
 s3 = boto3.client(
     "s3",
     region_name="eu-north-1",
-    aws_access_key_id=settings.S3_ACCESS_KEY,
-    aws_secret_access_key=settings.S3_SECRET_KEY,
+    aws_access_key_id=ACCESS_KEY,
+    aws_secret_access_key=SECRET_KEY,
     config=Config(signature_version="s3v4"),
 )
 
@@ -32,6 +33,8 @@ async def create_properties(
     property_location_details: str = Form(...),
     property_features: str = Form(...),
     images: List[UploadFile] = File(...),
+    review_id: Optional[str] = None
+
 ):
     """
     FORMATS:
@@ -75,9 +78,10 @@ async def create_properties(
     property_dict = property.dict()
     property_dict["images"] = image_keys
     property_dict["owner_id"] = str(current_user["id"])
-    result = await property_collection2.insert_one(property_dict)
+    property_dict["review_id"] = str(review_id)
+    result = await property_collection.insert_one(property_dict)
     property_id = str(result.inserted_id)
-    await property_collection2.update_one(
+    await property_collection.update_one(
         {"_id": result.inserted_id}, {"$set": {"id": property_id}}
     )
     return {"id": property_id}
@@ -86,7 +90,7 @@ async def create_properties(
 @router.get("/properties/")
 async def get_properties():
     properties = []
-    async for property in property_collection2.find():
+    async for property in property_collection.find():
         property["_id"] = str(property["_id"])  # Convert ObjectId to string
         property["images"] = [get_image_url(key) for key in property["images"]]
         properties.append(property)
