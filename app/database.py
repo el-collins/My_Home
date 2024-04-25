@@ -31,9 +31,6 @@ review_collection = review_database.reviews
 wishlist_database = get_db_client().Wishlist
 wishlist_collection = wishlist_database.wishlists
 
-plans_database = get_db_client().Plans
-plans_collection = plans_database.plans
-
 
 PyObjectId = Annotated[str, BeforeValidator(str)]
 ObjectId = Annotated[

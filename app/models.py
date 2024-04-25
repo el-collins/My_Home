@@ -1,8 +1,6 @@
 from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator  # type: ignore
 from typing import List, Annotated
 from pydantic_extra_types.phone_numbers import PhoneNumber  # type: ignore
-from enum import Enum
-from typing import Dict, Optional
 
 
 class User(BaseModel):
@@ -118,7 +116,6 @@ class Property(BaseModel):
     property_features: PropertyFeatures
 
 
-# Forget password
 class Message(BaseModel):
     message: str
 
@@ -126,28 +123,3 @@ class Message(BaseModel):
 class NewPassword(BaseModel):
     token: str
     new_password: str
-
-
-# Define an Enum for the available plans
-class PlanName(str, Enum):
-    basic = "basic"
-    standard = "standard"
-    premium = "premium"
-
-# Define a model for the pricing plans
-
-
-class PricingPlan(BaseModel):
-    name: PlanName
-    price: float
-    user_id: Optional[str] = None
-    min_houses: Optional[int] = None
-    max_houses: Optional[int] = None
-
-
-# Dummy pricing plans database
-pricing_plans_db: Dict[PlanName, float] = {
-    PlanName.basic: 0,
-    PlanName.standard: 9999.99,
-    PlanName.premium: 19999.99
-}
