@@ -38,15 +38,15 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     EMAIL_RESET_PASSWORD_EXPIRE_MINUTES: int = 10
     EMAIL_VERIFY_EMAIL_EXPIRE_MINUTES: int = 60 * 24 * 8
-    EMAILS_FROM_NAME: str = "myHome"
-    EMAILS_FROM_EMAIL: str = ""
+    EMAILS_FROM_NAME: str = "Homely"
+    EMAILS_FROM_EMAIL: str = "support@homely.com.ng"
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
-    SMTP_PORT: int = 2525
-    SMTP_HOST: str = "sandbox.smtp.mailtrap.io"
-    SMTP_USER: str = "8194b3b06d50b2"
-    SMTP_PASSWORD: str = "def1e61ddd646c"
+    SMTP_PORT: int = 465
+    SMTP_HOST: str = "smtp.zeptomail.com"
+    SMTP_USER: str = "emailapikey"
+    SMTP_PASSWORD: str = "wSsVR61+8kTyBq54yDL8J79ukF5VAF6nEE8pjFqi7SOpH/vA8sc8kEbLDQSjFKQcEDZvF2RA8LgtzBwGh2UPjNsqzF9SXCiF9mqRe1U4J3x17qnvhDzKWmhelheOLIwOxQVvnGNhFc0g+g=="
 
 
 settings = Settings()  # type: ignore
