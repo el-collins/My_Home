@@ -74,7 +74,7 @@ async def create_user(user: User):
         user_data["password"] = hashed_password
         user_data["phone_number"] = user_data["phone_number"].split(":")[1]
         user_data["wishlist"] = []
-        # user profile picture
+        user_data["is_active"] = False
         user_data["profile_picture"] = ""
 
         await register_user(user_data)
