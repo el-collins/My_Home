@@ -1,19 +1,14 @@
-from pydantic import BaseModel
-from app.models import Property, PropertyFeatures, PropertyLocationDetails
+from app.models import Property, PropertyFeatures, PropertyLocationDetails, PlanName
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException  # type: ignore
 from typing import List, Optional
 from app.database import property_collection
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, get_user_houses_count, get_db_client, get_user_plan
 from botocore.client import Config
 import boto3  # type: ignore
 from bson import ObjectId
 from app.settings import settings
 
-router = APIRouter(tags=["properties"])
-
-
-
-
+router = APIRouter()
 
 
 s3 = boto3.client(
@@ -23,6 +18,7 @@ s3 = boto3.client(
     aws_secret_access_key=settings.S3_SECRET_KEY,
     config=Config(signature_version="s3v4"),
 )
+
 
 # CREATE PROPERTY
 @router.post("/properties/")
@@ -35,6 +31,8 @@ async def create_properties(
     property_location_details: str = Form(...),
     property_features: str = Form(...),
     images: List[UploadFile] = File(...),
+    review_id: Optional[str] = None
+
 ):
     """
     FORMATS:
@@ -78,6 +76,7 @@ async def create_properties(
     # Save property details to MongoDB without the images
     property_dict = property.dict()
     property_dict["owner_id"] = str(current_user["id"])
+    property_dict["review_id"] = str(review_id)
     result = await property_collection.insert_one(property_dict)
     property_id = str(result.inserted_id)
 
@@ -96,6 +95,7 @@ async def create_properties(
     return {"id": property_id}
 
 
+
 # GET ALL PROPERTIES
 @router.get("/properties/")
 async def get_properties():
@@ -105,6 +105,8 @@ async def get_properties():
         property["images"] = [get_image_url(key) for key in property["images"]]
         properties.append(property)
     return properties
+
+
 
 
 def get_image_url(key: str):
@@ -221,3 +223,4 @@ async def update_property(
         raise HTTPException(status_code=404, detail="Property not found")
 
     return {"message": "Property updated successfully"}
+
