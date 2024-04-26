@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator  # type: ignore
-from typing import List, Annotated, Optional
+from typing import List, Annotated
 from pydantic_extra_types.phone_numbers import PhoneNumber  # type: ignore
+from enum import Enum
+from typing import Dict, Optional
 
 
 class User(BaseModel):
@@ -152,6 +154,7 @@ class Property(BaseModel):
     property_features: PropertyFeatures
 
 
+# Forget password
 class Message(BaseModel):
     message: str
 
