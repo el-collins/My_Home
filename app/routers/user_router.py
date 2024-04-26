@@ -97,27 +97,27 @@ async def create_user(user: User):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# @router.post("/verify-email/{token}")
-# async def verify_email(token: str, db: Annotated[OAuth2PasswordRequestForm, Depends(get_db_client)]):
-#     # verify token
-#     email = verify_token(token=token)
+@router.post("/verify-email/{token}")
+async def verify_email(token: str, db: Annotated[OAuth2PasswordRequestForm, Depends(get_db_client)]):
+    # verify token
+    email = verify_token(token=token)
 
-#     if not email:
-#         raise HTTPException(status_code=400, detail="Invalid token")
+    if not email:
+        raise HTTPException(status_code=400, detail="Invalid token")
 
-#     user = await get_user(email=email)
+    user = await get_user(email=email)
 
-#     if not user:
-#         raise HTTPException(
-#             status_code=500,
-#             detail="The user with this email does not exist in the system.",
-#         )
+    if not user:
+        raise HTTPException(
+            status_code=500,
+            detail="The user with this email does not exist in the system.",
+        )
 
-#     # Access the ObjectId value properly
-#     user_id = ObjectId(user["id"])
-#     await user_collection.update_one({"_id": user_id}, {"$set": {"is_active": True}})
+    # Access the ObjectId value properly
+    user_id = ObjectId(user["id"])
+    await user_collection.update_one({"_id": user_id}, {"$set": {"is_active": True}})
 
-#     return JSONResponse(status_code=201, content={"message": "Email verified"})
+    return JSONResponse(status_code=201, content={"message": "Email verified"})
 
 
 # GET / endpoint to retrieve all users
