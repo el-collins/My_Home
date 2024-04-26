@@ -31,8 +31,45 @@ class User(BaseModel):
         return value
 
 
-class UserResgister(User):
+class PlanBase(BaseModel):
+    name: str
+    price: float
+    min_house: int
+    max_house: int
+
+
+pricing_plans_db = [
+    {
+        "name": "Basic",
+        "price": 0.00,
+        "description": "Basic plan description",
+        "min_house": 1,
+        "max_house": 2,
+    },
+    {
+        "name": "Standard",
+        "price": 10000.00,
+        "description": "Standard plan description",
+        "min_house": 3,
+        "max_house": 7,
+    },
+    {
+        "name": "Premium",
+        "price": 30000.00,
+        "description": "Premium plan description",
+        "min_house": 7,
+        "max_house": 12,
+    },
+]
+
+
+class PlanResponse(PlanBase):
+    id: str
+
+
+class UserRegister(User):
     wishlist: List[str] = []
+    plan: Optional[dict] = Field(default=pricing_plans_db[0]["name"])
     is_active: bool = Field(
         default=False, description="Is the user active", title="Is Active")
 
@@ -72,7 +109,6 @@ class Review(BaseModel):
 
 
 class ReviewCreate(BaseModel):
-    # property_id: str
     rating: float
     comment: str
 
@@ -126,28 +162,3 @@ class Message(BaseModel):
 class NewPassword(BaseModel):
     token: str
     new_password: str
-
-
-# Define an Enum for the available plans
-class PlanName(str, Enum):
-    basic = "basic"
-    standard = "standard"
-    premium = "premium"
-
-# Define a model for the pricing plans
-
-
-class PricingPlan(BaseModel):
-    name: PlanName
-    price: float
-    user_id: Optional[str] = None
-    min_houses: Optional[int] = None
-    max_houses: Optional[int] = None
-
-
-# Dummy pricing plans database
-pricing_plans_db: Dict[PlanName, float] = {
-    PlanName.basic: 0,
-    PlanName.standard: 9999.99,
-    PlanName.premium: 19999.99
-}

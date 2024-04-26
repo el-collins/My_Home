@@ -33,13 +33,10 @@ from fastapi import Response
 from botocore.exceptions import NoCredentialsError
 
 
-
 router = APIRouter(prefix="/api", tags=["users"])
 
 # Initialize Passlib's CryptContext
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 
 
 s3 = boto3.client(
@@ -74,6 +71,8 @@ async def create_user(user: User):
         user_data["password"] = hashed_password
         user_data["phone_number"] = user_data["phone_number"].split(":")[1]
         user_data["wishlist"] = []
+        user_data["is_active"] = False
+        user_data["plan"] = "Basic"
         # user profile picture
         user_data["profile_picture"] = ""
 
@@ -144,9 +143,6 @@ async def get_user_by_id_route(user_id: Any):
     return user
 
 
-
-
-
 @router.post("/user/wishlist/", status_code=status.HTTP_201_CREATED)
 async def add_listing_to_wishlist(
     property_id: str, current_user=Depends(get_current_user)
@@ -165,23 +161,21 @@ async def remove_listing_from_wishlist(
     return {"message": "Property removed from wishlist"}
 
 
-
-
 @router.post("/user/profile-picture")
 async def upload_profile_picture(
     profile_picture: UploadFile = File(...), current_user=Depends(get_current_user)
 ):
     # Save the profile picture to S3 and get its key
-    image_key = f"profile images/{str(current_user['id'])}/{profile_picture.filename}"
+    image_key = f"profile images/{str(current_user['id'])}/{
+        profile_picture.filename}"
     s3.upload_fileobj(profile_picture.file, settings.BUCKET_NAME, image_key)
 
     # Update the user document in MongoDB with the image key
     await user_collection.update_one(
-        {"_id": ObjectId(current_user["id"])}, {"$set": {"profile_picture": image_key}}
+        {"_id": ObjectId(current_user["id"])}, {
+            "$set": {"profile_picture": image_key}}
     )
     return {"message": "Profile picture uploaded"}
-
-
 
 
 @router.get("/user/profile-picture")
@@ -192,7 +186,6 @@ async def get_profile_picture(current_user=Depends(get_current_user)):
  # Check if the user has a profile picture
     if "profile_picture" not in user or not user["profile_picture"]:
         return {"message": "No profile picture found"}
-
 
     # Get the image key
     image_key = user["profile_picture"]
@@ -207,11 +200,10 @@ async def get_profile_picture(current_user=Depends(get_current_user)):
     return Response(file_obj["Body"].read(), media_type="image/jpeg")
 
 
-
-
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     phone_number: Optional[str] = None
+
 
 @router.put("/user")
 async def update_account(user_update: UserUpdate, current_user=Depends(get_current_user)):
@@ -223,14 +215,10 @@ async def update_account(user_update: UserUpdate, current_user=Depends(get_curre
 
     # Check if a document was updated
     if result.modified_count == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     return {"message": "Account updated"}
-
-
-
-
-
 
 
 @router.delete("/user")
@@ -254,6 +242,7 @@ async def delete_account(current_user=Depends(get_current_user)):
 
     # Check if a document was deleted
     if result.deleted_count == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     return {"message": "Account and profile picture deleted"}
