@@ -23,7 +23,7 @@ class Settings(BaseSettings):
         env_file=".env", env_ignore_empty=True, extra="ignore"
     )
     PROJECT_NAME: str = "myHome"
-    FRONTEND_URL: AnyUrl = "http://localhost:8001/api/v1/"
+    FRONTEND_URL: AnyUrl = "https://homely.com.ng/"
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # 60 minutes * 24 hours * 8 days = 8 days
