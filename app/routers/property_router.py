@@ -1,4 +1,4 @@
-from app.models import Property, PropertyFeatures, PropertyLocationDetails, PlanName
+from app.models import Property, PropertyFeatures, PropertyLocationDetails
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException  # type: ignore
 from typing import List, Optional
 from app.database import property_collection
@@ -31,7 +31,7 @@ async def create_properties(
     property_location_details: str = Form(...),
     property_features: str = Form(...),
     images: List[UploadFile] = File(...),
-    review_id: Optional[str] = None
+    # review_id: Optional[str] = None
 
 ):
     """
@@ -60,6 +60,31 @@ async def create_properties(
 
     """
 
+    # if 'plan' not in current_user:
+    # todo and a plan key with a value of 'Basic'
+
+    all_properties_cursor = property_collection.find()
+    all_properties = await all_properties_cursor.to_list(length=None)
+
+    user_properties = [
+        x for x in all_properties if x['owner_id'] == str(current_user["id"])]
+
+    # Define plan limits
+    plan_limits = {
+        'Basic': 2,
+        'Standard': 7,
+        'Premium': 12
+    }
+
+    # Check if user has reached the limit for their plan
+    for plan, limit in plan_limits.items():
+        if len(user_properties) >= limit and ('plan' not in current_user or current_user['plan'] == plan):
+            raise HTTPException(
+                status_code=400,
+                detail=f"You have reached the limit of {
+                    limit} properties per user. Upgrade to a higher plan."
+            )
+
     property_location_details = PropertyLocationDetails.parse_raw(
         property_location_details
     )
@@ -76,7 +101,22 @@ async def create_properties(
     # Save property details to MongoDB without the images
     property_dict = property.dict()
     property_dict["owner_id"] = str(current_user["id"])
-    property_dict["review_id"] = str(review_id)
+    # property_dict["review_id"] = str(review_id)
+    result = await property_collection.insert_one(property_dict)
+    property_id = str(result.inserted_id)
+
+    # Save images to S3 and get their keys
+    image_keys = []
+    for image in images:
+        image_key = f"properties images/{str(current_user['id'])}/{
+            property_id}/{image.filename}"
+        s3.upload_fileobj(image.file, settings.BUCKET_NAME, image_key)
+        image_keys.append(image_key)
+    # Save property details and image keys to MongoDB
+    property_dict = property.dict()
+    property_dict["images"] = image_keys
+    property_dict["owner_id"] = str(current_user["id"])
+    # property_dict["review_id"] = str(review_id)
     result = await property_collection.insert_one(property_dict)
     property_id = str(result.inserted_id)
 
@@ -89,11 +129,11 @@ async def create_properties(
 
     # Update the property document in MongoDB with the image keys
     await property_collection.update_one(
-        {"_id": result.inserted_id}, {"$set": {"id": property_id, "images": image_keys}}
+        {"_id": result.inserted_id}, {
+            "$set": {"id": property_id, "images": image_keys}}
     )
 
     return {"id": property_id}
-
 
 
 # GET ALL PROPERTIES
@@ -105,8 +145,6 @@ async def get_properties():
         property["images"] = [get_image_url(key) for key in property["images"]]
         properties.append(property)
     return properties
-
-
 
 
 def get_image_url(key: str):

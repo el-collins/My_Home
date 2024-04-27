@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, EmailStr, StringConstraints, validator  # type: ignore
-from typing import List, Annotated
+from typing import List, Annotated, Optional
 from pydantic_extra_types.phone_numbers import PhoneNumber  # type: ignore
 from enum import Enum
 from typing import Dict, Optional
@@ -31,8 +31,45 @@ class User(BaseModel):
         return value
 
 
-class UserResgister(User):
+class PlanBase(BaseModel):
+    name: str
+    price: float
+    min_house: int
+    max_house: int
+
+
+pricing_plans_db = [
+    {
+        "name": "Basic",
+        "price": 0.00,
+        "description": "Basic plan description",
+        "min_house": 1,
+        "max_house": 2,
+    },
+    {
+        "name": "Standard",
+        "price": 10000.00,
+        "description": "Standard plan description",
+        "min_house": 3,
+        "max_house": 7,
+    },
+    {
+        "name": "Premium",
+        "price": 30000.00,
+        "description": "Premium plan description",
+        "min_house": 7,
+        "max_house": 12,
+    },
+]
+
+
+class PlanResponse(PlanBase):
+    id: str
+
+
+class UserRegister(User):
     wishlist: List[str] = []
+    plan: Optional[dict] = Field(default=pricing_plans_db[0]["name"])
     is_active: bool = Field(
         default=False, description="Is the user active", title="Is Active")
 
@@ -72,7 +109,6 @@ class Review(BaseModel):
 
 
 class ReviewCreate(BaseModel):
-    # property_id: str
     rating: float
     comment: str
 
