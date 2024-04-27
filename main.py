@@ -1,6 +1,6 @@
 from fastapi import FastAPI  # type: ignore
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore
-from app.routers import user_router, auth_router, property_router, wishlist_router, reviews_router
+from app.routers import user_router, auth_router, property_router, wishlist_router, reviews_router, plans_router
 
 
 app = FastAPI(title="My home API")
@@ -22,3 +22,4 @@ app.include_router(auth_router.router)
 app.include_router(property_router.router)
 app.include_router(wishlist_router.router)
 app.include_router(reviews_router.router)
+app.include_router(plans_router.router)
