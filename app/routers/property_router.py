@@ -71,7 +71,7 @@ async def create_properties(
 
     # Define plan limits
     plan_limits = {
-        'Basic': 2,
+        'Basic': 12,
         'Standard': 7,
         'Premium': 12
     }
