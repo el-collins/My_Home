@@ -1,8 +1,9 @@
+from fastapi import Depends, HTTPException
 from fastapi import Depends, HTTPException, status  # type: ignore
 from app.auth_handler import decode_token, oauth2_scheme
-from app.models import TokenData, PlanBase, pricing_plans_db, User
+from app.models import TokenData, PlanName
 from app.crud import get_user
-from app.database import property_collection, get_db_client, user_collection
+from app.database import property_collection, get_db_client
 from motor.motor_asyncio import AsyncIOMotorCollection
 
 
@@ -49,9 +50,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 # user_service.py
 
 
-async def get_user_plan(current_user: User = Depends(get_current_user)):
-    user = user_collection.get(current_user)
-    user_plan = user.plan
+def get_user_plan(current_user: dict = Depends(get_current_user)):
+    """
+    Retrieve the user's plan based on their authentication token.
+    You might implement this function to fetch the user's plan from a database or cache.
+    """
+    # Example implementation: retrieve plan from user data
+    user_plan = current_user.get("plan", PlanName.basic)
+    if user_plan is None:
+        raise HTTPException(status_code=404, detail="User plan not found")
     return user_plan
 
 

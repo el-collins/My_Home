@@ -79,11 +79,7 @@ async def create_properties(
     # Check if user has reached the limit for their plan
     for plan, limit in plan_limits.items():
         if len(user_properties) >= limit and ('plan' not in current_user or current_user['plan'] == plan):
-            raise HTTPException(
-                status_code=400,
-                detail=f"You have reached the limit of {
-                    limit} properties per user. Upgrade to a higher plan."
-            )
+            raise HTTPException(status_code=400, detail=f"You have reached the limit of {limit} properties per user. Upgrade to a higher plan.")
 
     property_location_details = PropertyLocationDetails.parse_raw(
         property_location_details
@@ -99,9 +95,7 @@ async def create_properties(
     )
     # Save images to S3 and get their keys
     image_keys = []
-    for image in images:
-        image_key = f"images/{image.filename}"
-        s3.upload_fileobj(image.file, BUCKET_NAME, image_key)
+        image_key = f"properties images/{str(current_user['id'])}/{property_id}/{image.filename}"
         image_keys.append(image_key)
     # Save property details and image keys to MongoDB
     property_dict = property.dict()
