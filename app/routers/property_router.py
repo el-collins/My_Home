@@ -123,7 +123,8 @@ async def get_properties():
     properties = []
     async for property in property_collection.find():
         property["_id"] = str(property["_id"])  # Convert ObjectId to string
-        property["images"] = [get_image_url(key) for key in property["images"]]
+        # property["images"] = [get_image_url(key) for key in property["images"]]
+        property["images"] = [get_image_url(key) for key in property.get("images", [])]
         properties.append(property)
     return properties
 
