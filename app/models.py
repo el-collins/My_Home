@@ -96,29 +96,22 @@ class Wishlist(BaseModel):
     property_id: str
 
 
-class Review(BaseModel):
-    user_id: str
-    property_id: str
+class ReviewBase(BaseModel):
     rating: float
     comment: str
+
+
+class ReviewCreate(ReviewBase):
+    property_id: str
+
+
+class ReviewResponse(ReviewBase):
+
+    property_id: str
+    id: str
 
     class Config:
         orm_mode = True
-
-
-class ReviewCreate(BaseModel):
-    rating: float
-    comment: str
-
-
-class ReviewResponse(Review):
-    id: str
-
-
-class UserReviews(BaseModel):
-    user_id: str
-    property_id: str
-    reviews: List[ReviewResponse]
 
 
 class ForgetPasswordRequest(BaseModel):
