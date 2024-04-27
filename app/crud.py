@@ -1,11 +1,8 @@
 from app.utils import verify_password
 from typing import List
 from app.database import user_collection, wishlist_collection, review_collection
-from app.models import UserResponse, User
+from app.models import UserResponse, User, ReviewCreate, ReviewResponse
 from bson import ObjectId  # type: ignore
-
-
-# Asynchronously retrieves a user from the database using their email address
 
 
 async def get_user(email: str):
@@ -25,16 +22,12 @@ def authenticate(* email: str, password: str) -> User | None:
     return db_user
 
 
-# Asynchronously registers a new user in the database
 async def register_user(user_data):
     result = await user_collection.insert_one(user_data)
     # Adds the database-generated ID to user data
     user_data["_id"] = str(result.inserted_id)
     # user_data["id"] = user_data.pop("_id")  # Rename _id to id
     # return user_data
-
-
-# Asynchronously retrieves a user from the database using their ID
 
 
 async def get_user_by_id(user_id: str):
@@ -83,11 +76,6 @@ async def add_to_wishlist(user_id: str, property_id: str):
         {"_id": user_id}, {"$push": {"wishlist": property_id}}
     )
 
-    # Return the updated user
-    # user = await user_collection.find_one({"_id": user_id})
-    # user["_id"] = str(user["_id"])
-    # return user
-
 
 # Asynchronously removes an item from a user's wishlist
 async def remove_from_wishlist(user_id: str, property_id: str):
@@ -100,26 +88,15 @@ async def remove_from_wishlist(user_id: str, property_id: str):
     )
 
 
-async def get_user_review(user_id: str):
-    """
-    Get all reviews items for the user.
-    """
-
-    # Finds all reviews associated with the user_id
-    review_list = []
-    async for review in review_collection.find({"user_id": user_id}):
-        review["_id"] = str(review["_id"])
-        # review["id"] = review.pop("_id")
-
-        review_list.append(review)
-    return review_list
+async def create_review(review_data: ReviewCreate):
+    result = await review_collection.insert_one(review_data.dict())
+    return str(result.inserted_id)
 
 
-async def add_to_reviews(user_id: str, property_id: str):
-    # Convert user_id
-    user_id = ObjectId(user_id)
-
-    # Add property_id to the user's wishlist
-    await review_collection.update_one(
-        {"_id": user_id}, {"$push": {"review": property_id}}
-    )
+async def get_reviews_for_property(property_id: str) -> List[ReviewResponse]:
+    reviews = []
+    async for review in review_collection.find({"property_id": property_id}):
+        review_id = str(review.get('_id', ''))
+        review_data = {**review, 'id': review_id}
+        reviews.append(ReviewResponse(**review_data))
+    return reviews
