@@ -64,7 +64,9 @@ async def create_user(user: User):
         hashed_password = pwd_context.hash(user.password)
 
         # generate token
-        email_verification_token = create_token(subject=user.email, type_ops="verify")  # noqa
+        email_verification_token = create_token(
+            subject=user.email, type_ops="verify"
+        )  # noqa
 
         # Prepare user data for registration
         user_data = user.model_dump()
@@ -96,7 +98,9 @@ async def create_user(user: User):
 
 
 @router.post("/verify-email/{token}")
-async def verify_email(token: str, db: Annotated[OAuth2PasswordRequestForm, Depends(get_db_client)]):
+async def verify_email(
+    token: str, db: Annotated[OAuth2PasswordRequestForm, Depends(get_db_client)]
+):
     # verify token
     email = verify_token(token=token)
 
@@ -106,10 +110,7 @@ async def verify_email(token: str, db: Annotated[OAuth2PasswordRequestForm, Depe
     user = await get_user(email=email)
 
     if not user:
-        raise HTTPException(
-            status_code=500,
-            detail="The user with this email does not exist in the system.",
-        )
+        raise HTTPException(status_code=500, detail="The user with this email does not exist in the system.")
 
     # Access the ObjectId value properly
     user_id = ObjectId(user["id"])
@@ -165,14 +166,12 @@ async def upload_profile_picture(
     profile_picture: UploadFile = File(...), current_user=Depends(get_current_user)
 ):
     # Save the profile picture to S3 and get its key
-    image_key = f"profile images/{str(current_user['id'])}/{
-        profile_picture.filename}"
+    image_key = f"profile images/{str(current_user['id'])}/{profile_picture.filename}"
     s3.upload_fileobj(profile_picture.file, settings.BUCKET_NAME, image_key)
 
     # Update the user document in MongoDB with the image key
     await user_collection.update_one(
-        {"_id": ObjectId(current_user["id"])}, {
-            "$set": {"profile_picture": image_key}}
+        {"_id": ObjectId(current_user["id"])}, {"$set": {"profile_picture": image_key}}
     )
     return {"message": "Profile picture uploaded"}
 
@@ -182,7 +181,7 @@ async def get_profile_picture(current_user=Depends(get_current_user)):
     # Get the user document from MongoDB
     user = await user_collection.find_one({"_id": ObjectId(current_user["id"])})
 
- # Check if the user has a profile picture
+    # Check if the user has a profile picture
     if "profile_picture" not in user or not user["profile_picture"]:
         return {"message": "No profile picture found"}
 
@@ -205,17 +204,22 @@ class UserUpdate(BaseModel):
 
 
 @router.put("/user")
-async def update_account(user_update: UserUpdate, current_user=Depends(get_current_user)):
+async def update_account(
+    user_update: UserUpdate, current_user=Depends(get_current_user)
+):
     # Create the update document
     update_doc = user_update.dict(exclude_unset=True)
 
     # Update the user document in MongoDB
-    result = await user_collection.update_one({"_id": ObjectId(current_user["id"])}, {"$set": update_doc})
+    result = await user_collection.update_one(
+        {"_id": ObjectId(current_user["id"])}, {"$set": update_doc}
+    )
 
     # Check if a document was updated
     if result.modified_count == 0:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     return {"message": "Account updated"}
 
@@ -242,6 +246,7 @@ async def delete_account(current_user=Depends(get_current_user)):
     # Check if a document was deleted
     if result.deleted_count == 0:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     return {"message": "Account and profile picture deleted"}
