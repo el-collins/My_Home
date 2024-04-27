@@ -73,7 +73,6 @@ async def create_user(user: User):
         user_data["wishlist"] = []
         user_data["is_active"] = False
         user_data["plan"] = "Basic"
-        # user profile picture
         user_data["profile_picture"] = ""
 
         await register_user(user_data)

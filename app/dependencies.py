@@ -1,3 +1,4 @@
+from fastapi import Depends, HTTPException
 from fastapi import Depends, HTTPException, status  # type: ignore
 from app.auth_handler import decode_token, oauth2_scheme
 from app.models import TokenData, PlanBase, pricing_plans_db, User
