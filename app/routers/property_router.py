@@ -107,20 +107,6 @@ async def create_properties(
         image_key = f"properties images/{str(current_user['id'])}/{property_id}/{image.filename}"
         s3.upload_fileobj(image.file, settings.BUCKET_NAME, image_key)
         image_keys.append(image_key)
-    # Save property details and image keys to MongoDB
-    property_dict = property.dict()
-    property_dict["images"] = image_keys
-    property_dict["owner_id"] = str(current_user["id"])
-    # property_dict["review_id"] = str(review_id)
-    result = await property_collection.insert_one(property_dict)
-    property_id = str(result.inserted_id)
-
-    # Save images to S3 and get their keys
-    image_keys = []
-    for image in images:
-        image_key = f"properties images/{str(current_user['id'])}/{property_id}/{image.filename}"
-        s3.upload_fileobj(image.file, settings.BUCKET_NAME, image_key)
-        image_keys.append(image_key)
 
     # Update the property document in MongoDB with the image keys
     await property_collection.update_one(
