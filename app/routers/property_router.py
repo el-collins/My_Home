@@ -1,14 +1,20 @@
 from app.models import Property, PropertyFeatures, PropertyLocationDetails
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException  # type: ignore
 from typing import List, Optional
-from app.database import property_collection
+from app.database import property_collection, review_collection
 from app.dependencies import get_current_user, get_user_houses_count, get_db_client, get_user_plan
 from botocore.client import Config
 import boto3  # type: ignore
 from bson import ObjectId
 from app.settings import settings
+from app.crud import get_reviews_for_property
 
 router = APIRouter()
+
+
+ACCESS_KEY = "AKIA47CRU4UEBPPE6H76"
+SECRET_KEY = "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"
+BUCKET_NAME = "myhome1"
 
 
 s3 = boto3.client(
@@ -31,16 +37,10 @@ async def create_properties(
     property_location_details: str = Form(...),
     property_features: str = Form(...),
     images: List[UploadFile] = File(...),
-    # review_id: Optional[str] = None
 
 ):
     """
     FORMATS:
-    name: str,
-    price: float,
-    property_type: str,
-    phone_number: str,
-
     property location details:
     {
         "street_address": "123 Main St",
@@ -93,51 +93,45 @@ async def create_properties(
         property_location_details=property_location_details,
         property_features=property_features,
     )
-
-    # Save property details to MongoDB without the images
-    property_dict = property.dict()
-    property_dict["owner_id"] = str(current_user["id"])
-    # property_dict["review_id"] = str(review_id)
-    result = await property_collection.insert_one(property_dict)
-    property_id = str(result.inserted_id)
-
     # Save images to S3 and get their keys
     image_keys = []
-    for image in images:
         image_key = f"properties images/{str(current_user['id'])}/{property_id}/{image.filename}"
-        s3.upload_fileobj(image.file, settings.BUCKET_NAME, image_key)
         image_keys.append(image_key)
     # Save property details and image keys to MongoDB
     property_dict = property.dict()
     property_dict["images"] = image_keys
     property_dict["owner_id"] = str(current_user["id"])
-    # property_dict["review_id"] = str(review_id)
     result = await property_collection.insert_one(property_dict)
     property_id = str(result.inserted_id)
-
-    # Save images to S3 and get their keys
-    image_keys = []
-    for image in images:
-        image_key = f"properties images/{str(current_user['id'])}/{property_id}/{image.filename}"
-        s3.upload_fileobj(image.file, settings.BUCKET_NAME, image_key)
-        image_keys.append(image_key)
-
-    # Update the property document in MongoDB with the image keys
     await property_collection.update_one(
-        {"_id": result.inserted_id}, {
-            "$set": {"id": property_id, "images": image_keys}}
+        {"_id": result.inserted_id}, {"$set": {"id": property_id}}
     )
-
     return {"id": property_id}
 
 
 # GET ALL PROPERTIES
+
 @router.get("/properties/")
 async def get_properties():
     properties = []
     async for property in property_collection.find():
         property["_id"] = str(property["_id"])  # Convert ObjectId to string
-        property["images"] = [get_image_url(key) for key in property["images"]]
+
+        # Check if the 'images' field exists in the property document
+        if "images" in property:
+            property["images"] = [get_image_url(
+                key) for key in property["images"]]
+        else:
+            # Set empty list if 'images' field is missing
+            property["images"] = []
+
+        # Fetch the associated review for the property
+        review = await review_collection.find_one({"property_id": property["_id"]})
+        if review:
+            property["review_id"] = str(review["_id"])
+        else:
+            property["review_id"] = None
+
         properties.append(property)
     return properties
 
@@ -149,19 +143,22 @@ def get_image_url(key: str):
     return url
 
 
-
 # GET A USER'S PROPERTIES
 @router.get("/users/me/properties")
-async def get_user_properties(current_user=Depends(get_current_user)):
-    user_id = str(current_user["id"])
-
+async def get_properties(review_id: Optional[str] = None):
     properties = []
-    async for property in property_collection.find({"owner_id": user_id}):
+    async for property in property_collection.find():
         property["_id"] = str(property["_id"])  # Convert ObjectId to string
         property["images"] = [get_image_url(key) for key in property["images"]]
+
+        if review_id:
+            reviews = await get_reviews_for_property(property["_id"])
+            property["review_id"] = next(
+                (review.id for review in reviews if review.property_id == property["_id"]), None)
+        else:
+            property["review_id"] = None
+
         properties.append(property)
-    if not properties:
-        raise HTTPException(status_code=404, detail="No properties found for this user")
     return properties
 
 
@@ -204,7 +201,7 @@ async def update_property(
     price: float,
     property_type: str,
     phone_number: str,
-    
+
     property location details:
     {
         "street_address": "123 Main St",
@@ -234,15 +231,18 @@ async def update_property(
     if phone_number is not None:
         property_dict["phone_number"] = phone_number
     if property_location_details is not None:
-        property_dict["property_location_details"] = PropertyLocationDetails.parse_raw(property_location_details)
+        property_dict["property_location_details"] = PropertyLocationDetails.parse_raw(
+            property_location_details)
     if property_features is not None:
-        property_dict["property_features"] = PropertyFeatures.parse_raw(property_features)
+        property_dict["property_features"] = PropertyFeatures.parse_raw(
+            property_features)
 
     # if images is not None:
     if images and len(images) > 0:  # Change this line
         image_keys = []
         for image in images:
-            image_key = f"properties images/{str(current_user['id'])}/{property_id}/{image.filename}"
+            image_key = f"properties images/{str(current_user['id'])}/{
+                property_id}/{image.filename}"
             s3.upload_fileobj(image.file, settings.BUCKET_NAME, image_key)
             image_keys.append(image_key)
         property_dict["images"] = image_keys
@@ -256,4 +256,3 @@ async def update_property(
         raise HTTPException(status_code=404, detail="Property not found")
 
     return {"message": "Property updated successfully"}
-
